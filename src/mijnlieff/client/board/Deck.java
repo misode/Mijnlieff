@@ -35,7 +35,7 @@ public class Deck implements Observable, InvalidationListener {
         }
     }
 
-    public void removeOneFromDeck(Tile t) {
+    private void removeOneFromDeck(Tile t) {
         for(int i = tiles.size() - 1; i >= 0; i--) {
             if(t.equals(tiles.get(i))) {
                 tiles.remove(i);

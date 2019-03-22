@@ -94,11 +94,8 @@ public class Board implements Observable {
         return moves.subList(0, currentMove);
     }
 
-    public Move getMove(int i) {
-        return moves.get(i);
-    }
-
     public void resetCurrentMove() {
+        if(currentMove == 0) return;
         currentMove = 0;
         fireInvalidationEvent();
     }

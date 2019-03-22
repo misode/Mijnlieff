@@ -10,8 +10,6 @@ public class Companion {
 
     public Board model;
 
-    private Scene scene;
-
     public void initialize() {
         model.resetCurrentMove();
     }
@@ -25,7 +23,6 @@ public class Companion {
     }
 
     public void setScene(Scene scene) {
-        this.scene = scene;
         Deck whiteDeck = new Deck(Tile.Player.WHITE, model);
         Deck blackDeck = new Deck(Tile.Player.BLACK, model);
         ((DeckPane)scene.lookup("#white-deck")).setModel(whiteDeck);

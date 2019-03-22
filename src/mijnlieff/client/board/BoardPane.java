@@ -50,12 +50,9 @@ public class BoardPane extends GridPane implements InvalidationListener {
             ImageView cell = (ImageView)n;
             cell.setImage(emptyImage);
         }
-        for(int i = 0; i < model.getCurrentMove(); i++) {
-            Move m = model.getMove(i);
+        for(Move m : model.getMoves()) {
             ImageView cell = grid[m.getX()][m.getY()];
             cell.setImage(m.getTile().getImage());
         }
-
-
     }
 }
