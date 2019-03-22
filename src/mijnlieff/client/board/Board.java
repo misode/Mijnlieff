@@ -87,7 +87,7 @@ public class Board implements Observable {
     }
 
     public boolean hasNextMove() {
-        return hasReachedEnd() && getCurrentMove() >= moves.size();
+        return !(hasReachedEnd() && getCurrentMove() >= moves.size());
     }
 
     public List<Move> getMoves() {
