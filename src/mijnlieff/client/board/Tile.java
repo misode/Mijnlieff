@@ -72,7 +72,7 @@ public class Tile {
         PULLER("puller", p -> (p.x <= 1 && p.x >= -1 && p.y <= 1 && p.y >= -1));
 
         private String name;
-        private Predicate allowed;
+        private Predicate<Pos> allowed;
 
         Type(String name, Predicate<Pos> allowed) {
             this.name = name;
@@ -98,7 +98,15 @@ public class Tile {
         public String toString() {
             return name;
         }
+
+        private class Pos {
+
+            private int x, y;
+
+            private Pos(int x, int y) {
+                this.x = x;
+                this.y = y;
+            }
+        }
     }
-
-
 }
