@@ -12,27 +12,25 @@
 <?import mijnlieff.client.board.DeckPane?>
 
 <BorderPane prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mijnlieff.client.Companion">
-   <fx:define>
-       <Board fx:id="model">
-       </Board>
-   </fx:define>
+    <fx:define>
+        <Board fx:id="model">
+        </Board>
+    </fx:define>
     <bottom>
-      <HBox prefHeight="0.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-         <children>
-            <FirstMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="|&lt;" />
-            <PrevMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="&lt;" />
-            <NextMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="&gt;" />
-            <LastMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="&gt;|" />
-         </children>
-      </HBox>
-   </bottom>
-   <left>
-      <DeckPane id="white-deck" prefHeight="200.0" prefWidth="100.0" />
-   </left>
-   <right>
-      <DeckPane id="black-deck" prefHeight="200.0" prefWidth="100.0" />
-   </right>
-   <center>
-       <BoardPane model="$model" prefHeight="200.0" prefWidth="200.0" />
-   </center>
+        <HBox prefHeight="0.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <FirstMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="|&lt;"/>
+            <PrevMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="&lt;"/>
+            <NextMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="&gt;"/>
+            <LastMoveButton prefWidth="1000.0" model="$model" mnemonicParsing="false" text="&gt;|"/>
+        </HBox>
+    </bottom>
+    <left>
+        <DeckPane id="white-deck" prefHeight="200.0" prefWidth="100.0" />
+    </left>
+    <right>
+        <DeckPane id="black-deck" prefHeight="200.0" prefWidth="100.0" />
+    </right>
+    <center>
+        <BoardPane model="$model" prefHeight="200.0" prefWidth="200.0" />
+    </center>
 </BorderPane>

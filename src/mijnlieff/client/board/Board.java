@@ -87,7 +87,7 @@ public class Board implements Observable {
     }
 
     public boolean hasNextMove() {
-        return !(hasReachedEnd() && getCurrentMove() >= moves.size());
+        return !(reachedEnd && getCurrentMove() >= moves.size());
     }
 
     public List<Move> getMoves() {
@@ -110,10 +110,6 @@ public class Board implements Observable {
             }
         }
         return false;
-    }
-
-    public boolean hasReachedEnd() {
-        return reachedEnd;
     }
 
     private List<InvalidationListener> listenerList = new ArrayList<>();
