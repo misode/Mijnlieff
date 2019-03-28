@@ -1,4 +1,4 @@
-package mijnlieff.client;
+package mijnlieff.client.establisher.game;
 
 import javafx.concurrent.Task;
 import mijnlieff.client.board.Tile;

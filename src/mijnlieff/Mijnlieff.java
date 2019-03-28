@@ -9,6 +9,16 @@ import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
 import mijnlieff.client.*;
 import mijnlieff.client.board.Board;
+import mijnlieff.client.establisher.board.BoardEstablishedListener;
+import mijnlieff.client.establisher.board.BoardEstablisher;
+import mijnlieff.client.establisher.board.BoardSetting;
+import mijnlieff.client.establisher.connection.ConnectionEstablishedListener;
+import mijnlieff.client.establisher.connection.ConnectionEstablisher;
+import mijnlieff.client.establisher.game.GameCompanion;
+import mijnlieff.client.establisher.game.GameEstablishedListener;
+import mijnlieff.client.establisher.game.GameEstablisher;
+import mijnlieff.client.establisher.game.JoinTask;
+import mijnlieff.client.viewer.ViewerCompanion;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -16,7 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class Mijnlieff extends Application implements ConnectionEstablishedListener, GameEstablishedListener, BoardEstablishedListener {
+public class Mijnlieff extends Application implements ConnectionEstablishedListener,
+        GameEstablishedListener, BoardEstablishedListener {
 
     private String hostName;
     private int portNumber;
@@ -38,7 +49,6 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
 
         if(argList.size() == 0) {
             mode = Mode.GAME;
-
         } else if(argList.size() == 2 || argList.size() == 3) {
             mode = Mode.VIEWER;
             hostName = argList.get(0);
@@ -58,8 +68,12 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         if(mode == Mode.INVALID) Platform.exit();
     }
 
+    /**
+     * Initializes the game stage to establish a connection
+     * @throws IOException
+     */
     private void initializeGame() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/connection.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/connection/connection.fxml"));
         Scene scene = new Scene(loader.load(), 300, 120);
         ConnectionEstablisher companion = loader.getController();
 
@@ -67,10 +81,16 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         companion.setListener(this);
     }
 
+    /**
+     * Stores the connection and changes the stage to establish a game from a playerlist.
+     * @param connection the connection that was just established
+     * @param username the username that was chosen by the user
+     * @see Connection
+     */
     @Override
     public void establishedConnection(Connection connection, String username){
         this.connection = connection;
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/playerlist.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/game/playerlist.fxml"));
         try {
             Scene scene = new Scene(loader.load(), 350, 500);
             GameEstablisher companion = loader.getController();
@@ -83,10 +103,15 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         }
     }
 
+    /**
+     * Changes the stage to establish a board setting after an opponent has been decided.
+     * @param opponent the opponent of the game
+     * @see JoinTask.Opponent
+     */
     @Override
     public void establishedGame(JoinTask.Opponent opponent) {
         System.out.println("Established game with player " + opponent.username);
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/boardChooser.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/board/boardChooser.fxml"));
         try {
             Scene scene = new Scene(loader.load(), 512, 315);
             BoardEstablisher companion = loader.getController();
@@ -100,6 +125,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         }
     }
 
+    /**
+     * Changes the stage to show the board of the game after the board setting has been decided.
+     * @param boardSetting the board setting of the game
+     * @see BoardSetting
+     */
     @Override
     public void establishedBoard(BoardSetting boardSetting) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("client/game.fxml"));
@@ -113,10 +143,16 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         }
     }
 
+    /**
+     * Initializes the viewer by creating a new {@Link Connection} and loading a viewer stage.
+     * If screenshot is not null, this will also take a snapshot of the scene and write it to the screenshot path
+     * @throws IOException
+     * @see Connection
+     */
     private void initializeViewer() throws IOException {
         connection = new Connection(hostName, portNumber);
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/viewer.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/viewer/viewer.fxml"));
         Scene scene = new Scene(loader.load(), 810, 680);
         ViewerCompanion companion = loader.getController();
         companion.setConnection(connection);
@@ -136,6 +172,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         }
     }
 
+    /**
+     * Updates the initial stage with a new scene
+     * @param scene the new scene to apply
+     * @see Scene
+     */
     private void changeScene(Scene scene) {
         scene.getStylesheets().add("mijnlieff/client/style.css");
 
@@ -146,6 +187,10 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         stage.show();
     }
 
+    /**
+     * Called by JavaFX when stopping the application, closes the connection
+     * @throws IOException
+     */
     @Override
     public void stop() throws IOException {
         if(connection != null) {

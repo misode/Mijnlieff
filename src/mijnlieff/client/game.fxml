@@ -6,7 +6,7 @@
 <?import mijnlieff.client.board.Board?>
 <?import mijnlieff.client.board.DeckPane?>
 
-<BorderPane prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mijnlieff.client.GameCompanion">
+<BorderPane prefHeight="200.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mijnlieff.client.establisher.game.GameCompanion">
     <fx:define>
         <Board fx:id="model">
         </Board>

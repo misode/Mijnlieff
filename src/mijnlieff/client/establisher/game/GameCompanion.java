@@ -1,4 +1,6 @@
-package mijnlieff.client;
+package mijnlieff.client.establisher.game;
+
+import mijnlieff.client.Connection;
 
 public class GameCompanion {
 

@@ -1,4 +1,6 @@
-package mijnlieff.client;
+package mijnlieff.client.establisher.connection;
+
+import mijnlieff.client.Connection;
 
 import java.io.IOException;
 

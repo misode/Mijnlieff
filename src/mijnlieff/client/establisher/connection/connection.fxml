@@ -5,7 +5,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="120.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mijnlieff.client.ConnectionEstablisher">
+<AnchorPane prefHeight="120.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mijnlieff.client.establisher.connection.ConnectionEstablisher">
     <TextField fx:id="hostName" layoutX="14.0" layoutY="14.0" prefHeight="26.0" prefWidth="156.0" promptText="server host" />
     <TextField fx:id="portNumber" layoutX="183.0" layoutY="14.0" prefHeight="26.0" prefWidth="96.0" promptText="port" />
     <TextField fx:id="username" layoutX="14.0" layoutY="47.0" prefHeight="26.0" prefWidth="265.0" promptText="username" />

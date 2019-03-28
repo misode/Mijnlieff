@@ -1,4 +1,4 @@
-package mijnlieff.client;
+package mijnlieff.client.establisher.game;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -10,6 +10,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Duration;
+import mijnlieff.client.Connection;
 import mijnlieff.client.board.Tile;
 
 import java.io.IOException;
@@ -54,21 +55,9 @@ public class GameEstablisher {
     public void doQueue(ActionEvent actionEvent) {
         enqueueButton.getStyleClass().removeAll("invalid");
         if(enqueued) {
-            try {
-                connection.dequeue();
-            } catch (IOException e) {
-                enqueueButton.getStyleClass().add("invalid");
-                System.err.println("Unable to dequeue");
-                e.printStackTrace();
-            }
+            connection.dequeue();
         } else {
-            try {
-                connection.enqueue(this);
-            } catch (IOException e) {
-                enqueueButton.getStyleClass().add("invalid");
-                System.err.println("Unable to enqueue");
-                e.printStackTrace();
-            }
+            connection.enqueue(this);
         }
         enqueued = !enqueued;
         if(enqueued) {
@@ -80,18 +69,12 @@ public class GameEstablisher {
 
     public void doSelect(ActionEvent actionEvent) {
         selectButton.getStyleClass().removeAll("invalid");
-        try {
-            String opponentName = playerList.getSelectionModel().getSelectedItem();
-            Tile.Player player = connection.selectOpponent(opponentName);
-            if(opponentName != null && player != null) {
-                joined(new JoinTask.Opponent(player, opponentName));
-            } else {
-                selectButton.getStyleClass().add("invalid");
-            }
-        } catch (IOException e) {
+        String opponentName = playerList.getSelectionModel().getSelectedItem();
+        Tile.Player player = connection.selectOpponent(opponentName);
+        if(opponentName != null && player != null) {
+            joined(new JoinTask.Opponent(player, opponentName));
+        } else {
             selectButton.getStyleClass().add("invalid");
-            System.err.println("Unable to select opponent");
-            e.printStackTrace();
         }
     }
 
@@ -101,12 +84,8 @@ public class GameEstablisher {
     }
 
     private void updatePlayerList() {
-        try {
-            ObservableList<String> playerNames = FXCollections.observableArrayList(connection.getPlayerList());
-            playerList.setItems(playerNames);
-        } catch (IOException e) {
-            System.err.println("Could not request player list");
-        }
+        ObservableList<String> playerNames = FXCollections.observableArrayList(connection.getPlayerList());
+        playerList.setItems(playerNames);
     }
 
     public static class PlayerCell extends ListCell<String> {

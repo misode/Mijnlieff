@@ -1,7 +1,8 @@
-package mijnlieff.client;
+package mijnlieff.client.viewer;
 
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
+import mijnlieff.client.Connection;
 import mijnlieff.client.board.Board;
 import mijnlieff.client.board.Deck;
 import mijnlieff.client.board.DeckPane;

@@ -1,7 +1,4 @@
-package mijnlieff.client;
-
-import mijnlieff.client.board.Tile;
-import java.io.IOException;
+package mijnlieff.client.establisher.game;
 
 public interface GameEstablishedListener {
 

@@ -43,7 +43,7 @@ public class Board implements Observable {
             }
         }
         try {
-            String[] msg = connection.next().split(" ");
+            String[] msg = connection.viewNext().split(" ");
             if(msg[1].equals("T")) reachedEnd = true;
             int moveX = Integer.parseInt(msg[2]);
             int moveY = Integer.parseInt(msg[3]);
