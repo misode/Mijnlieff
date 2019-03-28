@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="315.0" prefWidth="512.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mijnlieff.client.BoardEstablisher">
+    <Label alignment="TOP_CENTER" layoutY="10.0" maxHeight="1.7976931348623157E308" prefHeight="30.0" prefWidth="512.0" text="Playing against">
+        <font>
+          <Font size="20.0" />
+        </font>
+    </Label>
+   <Label fx:id="opponentName" alignment="TOP_CENTER" layoutY="39.0" maxHeight="1.7976931348623157E308" prefHeight="36.0" prefWidth="512.0">
+      <font>
+         <Font size="25.0" />
+      </font>
+   </Label>
+    <AnchorPane fx:id="boardChooser" layoutY="98.0" prefHeight="217.0" prefWidth="512.0">
+      <Label layoutX="214.0" layoutY="3.0" text="Choose a Board" />
+        <GridPane fx:id="boardPreviewer" alignment="BOTTOM_RIGHT" gridLinesVisible="true" layoutX="166.0" layoutY="24.0" prefHeight="180.0" prefWidth="180.0" style="-fx-background-color: gray;" />
+      <Button fx:id="prevButton" layoutX="121.0" layoutY="101.0" mnemonicParsing="false" onAction="#prevPreset" text="&lt;" />
+      <Button fx:id="nextButton" layoutX="364.0" layoutY="101.0" mnemonicParsing="false" onAction="#nextPreset" text="&gt;" />
+      <Button fx:id="confirmButton" layoutX="404.0" layoutY="178.0" mnemonicParsing="false" onAction="#confirm" text="Confirm Board" />
+    </AnchorPane>
+   <Label fx:id="placeHolder" layoutX="149.0" layoutY="158.0" prefHeight="38.0" prefWidth="213.0" text="Waiting for opponent to choose board" textAlignment="CENTER" visible="false" />
+</AnchorPane>

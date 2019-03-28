@@ -1,14 +1,17 @@
 package mijnlieff.client;
 
 import javafx.scene.Scene;
+import javafx.scene.control.TextField;
 import mijnlieff.client.board.Board;
 import mijnlieff.client.board.Deck;
 import mijnlieff.client.board.DeckPane;
 import mijnlieff.client.board.Tile;
 
-public class Companion {
+public class ViewerCompanion {
 
     public Board model;
+
+    public TextField serverHost;
 
     public void initialize() {
         model.resetCurrentMove();
@@ -18,8 +21,8 @@ public class Companion {
         return model;
     }
 
-    public void setEchoClient(EchoClient echoClient) {
-        model.setEchoClient(echoClient);
+    public void setConnection(Connection connection) {
+        model.setConnection(connection);
     }
 
     public void setScene(Scene scene) {

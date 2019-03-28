@@ -2,7 +2,7 @@ package mijnlieff.client.board;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import mijnlieff.client.EchoClient;
+import mijnlieff.client.Connection;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class Board implements Observable {
 
-    private EchoClient echoClient;
+    private Connection connection;
 
     private ArrayList<Move> moves;
     private int width, height;
@@ -30,8 +30,8 @@ public class Board implements Observable {
         reachedEnd = false;
     }
 
-    public void setEchoClient(EchoClient echoClient) {
-        this.echoClient = echoClient;
+    public void setConnection(Connection connection) {
+        this.connection = connection;
     }
 
     private void requestMove() {
@@ -43,7 +43,7 @@ public class Board implements Observable {
             }
         }
         try {
-            String[] msg = echoClient.next().split(" ");
+            String[] msg = connection.next().split(" ");
             if(msg[1].equals("T")) reachedEnd = true;
             int moveX = Integer.parseInt(msg[2]);
             int moveY = Integer.parseInt(msg[3]);
