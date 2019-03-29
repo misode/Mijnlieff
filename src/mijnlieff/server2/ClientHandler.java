@@ -29,9 +29,7 @@ public class ClientHandler implements Runnable {
     }
 
     public void remove(Client client) {
-        if(client.getState() != null) {
-            client.getState().quit();
-        }
+        client.getState().quit();
         if(client.getIdentifier() != null) {
             clients.remove(client.getIdentifier());
         }
@@ -63,7 +61,6 @@ public class ClientHandler implements Runnable {
     }
 
     private State realHandle(Client client, String line) {
-        if(client.getState() == null) return null;
         String[] split = line.split(" ");
         switch(split[0]) {
             case "Q":
@@ -85,20 +82,45 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public class State {
+    public interface State {
+        State quit();
+        State getQueue();
+        State identify(String line);
+        State enqueue();
+        State retract();
+        State choose(String line);
+        State forward(String line);
+        State error();
+
+        boolean isClosed();
+        boolean isEnqueued();
+    }
+
+    public class Closed implements State {
+        /* if we ignore them they might leave */
+        public State quit()                { return this; }
+        public State getQueue()            { return this; }
+        public State identify(String line) { return this; }
+        public State enqueue()             { return this; }
+        public State retract()             { return this; }
+        public State choose(String line)   { return this; }
+        public State forward(String line)  { return this; }
+        public State error()               { return this; }
+
+        public boolean isClosed()   { return true; }
+        public boolean isEnqueued() { return false; }
+    }
+
+    public abstract class Open implements State {
         protected final Client client;
 
-        public State(Client client) {
+        public Open(Client client) {
             this.client = client;
         }
 
-        public State error() {
-            client.write("?");
-            return null;
-        }
-
         public State quit() {
-            return null;
+            if(client.getIdentifier() != null) clients.remove(client.getIdentifier());
+            return new Closed();
         }
 
         public State getQueue() {
@@ -112,14 +134,18 @@ public class ClientHandler implements Runnable {
         }
 
         public State identify(String line) { return error(); }
-        public State enqueue() { return error(); }
-        public State retract() { return error(); }
-        public State choose(String line) { return error(); }
-        public State forward(String line) { return error(); }
+        public State enqueue()             { return error(); }
+        public State retract()             { return error(); }
+        public State choose(String line)   { return error(); }
+        public State forward(String line)  { return error(); }
 
-        public boolean isEnqueued() {
-            return false;
+        public State error() {
+            client.write("?");
+            return quit();
         }
+
+        public boolean isClosed() { return false; }
+        public boolean isEnqueued() { return false; }
 
         protected String substring(String string, int begin) {
             if(begin > string.length()) {
@@ -130,7 +156,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public class Begin extends State {
+    public class Begin extends Open {
         public Begin(Client client) {
             super(client);
         }
@@ -153,7 +179,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public class PartOne extends State {
+    public class PartOne extends Open {
         private LinkedList<String> movesLeft;
 
         public PartOne(Client client, LinkedList<String> movesLeft) {
@@ -164,21 +190,16 @@ public class ClientHandler implements Runnable {
         public State forward(String input) {
             client.write(movesLeft.poll());
             if(movesLeft.isEmpty()) {
-                return null;
+                return quit();
             } else {
                 return this;
             }
         }
     }
 
-    public class Identified extends State {
+    public class Identified extends Open {
         public Identified(Client client) {
             super(client);
-        }
-
-        public State quit() {
-            clients.remove(client.getIdentifier());
-            return null;
         }
 
         public State enqueue() {
@@ -207,7 +228,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public class Enqueued extends State {
+    public class Enqueued extends Open {
         public Enqueued(Client client) {
             super(client);
         }
@@ -216,18 +237,13 @@ public class ClientHandler implements Runnable {
             return true;
         }
 
-        public State quit() {
-            clients.remove(client.getIdentifier());
-            return null;
-        }
-
         public State retract() {
             client.write("+");
             return new Identified(client);
         }
     }
 
-    public class AtTurn extends State {
+    public class AtTurn extends Open {
         private Client other;
         public AtTurn(Client client, Client other) {
             super(client);
@@ -236,9 +252,8 @@ public class ClientHandler implements Runnable {
         }
 
         public State quit() {
-            other.write("Q");
-            other.setState(null);
-            return null;
+            other.quit();
+            return super.quit();
         }
 
         public State forward(String input) {
@@ -246,15 +261,9 @@ public class ClientHandler implements Runnable {
             other.setState(new AtTurn(other, client));
             return new NotTurn(client, other);
         }
-
-        public State error() {
-            other.write("Q");
-            other.setState(null);
-            return super.error();
-        }
     }
 
-    public class NotTurn extends State {
+    public class NotTurn extends Open {
         private Client other;
         public NotTurn(Client client, Client other) {
             super(client);
@@ -263,15 +272,8 @@ public class ClientHandler implements Runnable {
         }
 
         public State quit() {
-            other.write("Q");
-            other.setState(null);
-            return null;
-        }
-
-        public State error() {
-            other.write("Q");
-            other.setState(null);
-            return super.error();
+            other.quit();
+            return super.quit();
         }
     }
 }

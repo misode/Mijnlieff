@@ -10,12 +10,12 @@ public class Client implements AutoCloseable {
     public Client(ClientHandler handler, Writer writer) {
         this.handler = handler;
         this.writer = writer;
-        this.state = null;
+        this.state = handler.new Closed();
         this.identifier = null;
     }
 
     public boolean isConnected() {
-        return state != null;
+        return !state.isClosed();
     }
 
     public void setState(ClientHandler.State state) {
@@ -39,12 +39,17 @@ public class Client implements AutoCloseable {
     }
 
     public boolean isEnqueued() {
-        return state != null && state.isEnqueued();
+        return !state.isClosed() && state.isEnqueued();
     }
 
     public void close() {
         handler.remove(this);
-        this.state = null;
+        setState(handler.new Closed());
+    }
+
+    public void quit() {
+        writer.write("Q");
+        setState(handler.new Closed());
     }
 
 }
