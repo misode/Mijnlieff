@@ -14,10 +14,10 @@ import mijnlieff.client.establisher.board.BoardEstablisher;
 import mijnlieff.client.establisher.board.BoardSetting;
 import mijnlieff.client.establisher.connection.ConnectionEstablishedListener;
 import mijnlieff.client.establisher.connection.ConnectionEstablisher;
-import mijnlieff.client.establisher.game.GameCompanion;
+import mijnlieff.client.GameCompanion;
 import mijnlieff.client.establisher.game.GameEstablishedListener;
 import mijnlieff.client.establisher.game.GameEstablisher;
-import mijnlieff.client.establisher.game.JoinTask;
+import mijnlieff.client.establisher.game.Opponent;
 import mijnlieff.client.viewer.ViewerCompanion;
 
 import javax.imageio.ImageIO;
@@ -106,11 +106,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     /**
      * Changes the stage to establish a board setting after an opponent has been decided.
      * @param opponent the opponent of the game
-     * @see JoinTask.Opponent
+     * @see Opponent
      */
     @Override
-    public void establishedGame(JoinTask.Opponent opponent) {
-        System.out.println("Established game with player " + opponent.username);
+    public void establishedGame(Opponent opponent) {
+        System.out.println("Established game with player " + opponent.getUsername());
         FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/board/boardChooser.fxml"));
         try {
             Scene scene = new Scene(loader.load(), 512, 315);
@@ -137,6 +137,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
             Scene scene = new Scene(loader.load(), 810, 660);
             GameCompanion companion = loader.getController();
             companion.setConnection(connection);
+            companion.setBoardSetting(boardSetting);
             changeScene(scene);
         } catch (IOException e) {
             e.printStackTrace();

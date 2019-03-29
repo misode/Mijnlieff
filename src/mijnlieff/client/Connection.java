@@ -1,6 +1,6 @@
 package mijnlieff.client;
 
-import javafx.beans.Observable;
+import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import mijnlieff.client.board.Move;
 import mijnlieff.client.board.Tile;
@@ -8,7 +8,7 @@ import mijnlieff.client.establisher.board.BoardEstablisher;
 import mijnlieff.client.establisher.board.BoardEstablisherTask;
 import mijnlieff.client.establisher.board.BoardSetting;
 import mijnlieff.client.establisher.game.GameEstablisher;
-import mijnlieff.client.establisher.game.JoinTask;
+import mijnlieff.client.establisher.game.Opponent;
 
 import java.io.*;
 import java.net.*;
@@ -23,15 +23,9 @@ public class Connection{
     private PrintWriter out;
     private BufferedReader in;
 
-    private JoinTask joinTask;
-    private GameEstablisher gameEstablisher;
-
     private BoardEstablisherTask boardTask;
     private BoardEstablisher boardEstablisher;
-
-    // TODO: remove temporary fields
-    private String playerName;
-    private boolean playerJoined;
+    private String opponentName;
 
     /**
      * Creates a new {@link Socket} with the specified host and port
@@ -45,8 +39,6 @@ public class Connection{
         socket = new Socket(hostName, portNumber);
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-        playerJoined = false;
     }
 
     /**
@@ -60,11 +52,7 @@ public class Connection{
         out.println("I " + username);
         try {
             String response = in.readLine();
-
-            // TODO: remove temporary response
-            response = "+";
-            playerName = username;
-
+            System.out.println(response);
             return response.equals("+");
         } catch (IOException e) {
             e.printStackTrace();
@@ -74,113 +62,78 @@ public class Connection{
 
     /**
      * Requests the player list from the server.
-     * @return a list of player names in an {@link ArrayList}. Can be empty.
      */
-    public ArrayList<String> getPlayerList() {
+    public void requestPlayerList() {
         out.println("W");
-        ArrayList<String> playerNames = new ArrayList<>();
-        try {
-            String response = in.readLine();
-            while(response.startsWith("+") && response.length() > 2) {
-                playerNames.add(response.substring(2));
-                response = in.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // TODO: remove temporary names
-        playerNames.add("Alice");
-        playerNames.add("Bob");
-        playerNames.add("Carl");
-        playerNames.add("Dave");
-        if(playerJoined) {
-            playerNames.add(playerName);
-        }
-        return playerNames;
     }
 
     /**
      * Marks the player on the global player list, available for any opponent to start a game.
-     * Also starts a {@link JoinTask} to wait for an opponent.
-     * @param gameEstablisher the {@link GameEstablisher} to call when an opponent has been found
      */
-    public void enqueue(GameEstablisher gameEstablisher) {
-        this.gameEstablisher = gameEstablisher;
+    public void enqueue() {
         out.println("P");
-
-        // TODO: remove temporary statement
-        playerJoined = true;
-
-        joinTask = new JoinTask(in);
-        joinTask.stateProperty().addListener(o -> this.foundOpponent());
-        new Thread(joinTask).start();
-    }
-
-    /**
-     * Notifies the {@link GameEstablisher} if it found an opponent.
-     * Called by {@link JoinTask}
-     * @see JoinTask.Opponent
-     */
-    private void foundOpponent() {
-        if(joinTask.getState() == Worker.State.SUCCEEDED) {
-            gameEstablisher.joined(joinTask.getValue());
-        } else if(joinTask.getState() == Worker.State.FAILED) {
-            System.err.println("Failed joining game");
-        }
     }
 
     /**
      * Removes the player from the global player list.
-     * @return {@code true} if the player was successfully removed from the queue
-     *         {@code false} if something went wrong
      */
-    public boolean dequeue() {
+    public void dequeue() {
         out.println("R");
-        try {
-            String response = in.readLine();
-
-            // TODO: remove temporary response
-            response = "+";
-            playerJoined = response.equals("+");
-
-            return response.equals("+");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     /**
      *
      * @param opponentName the name of the opponent that is used to start the game.
-     * @return {@link Tile.Player} the color of the opponent decided by the server
-     * @see Tile.Player
      */
-    public Tile.Player selectOpponent(String opponentName) {
+    public void selectOpponent(String opponentName) {
+        this.opponentName = opponentName;
         out.println("C "+opponentName);
+    }
+
+    public void watchGameEstablishing(GameEstablisher gameEstablisher) {
+        boolean gameEstablished = false;
         try {
-            String response = in.readLine();
+            String response;
+            while (!gameEstablished && (response = in.readLine()) != null) {
+                System.err.println(response);
 
-            // TODO: remove temporary response
-            response = "T";
-
-            if(response.equals("T")) {
-                return Tile.Player.WHITE;
-            } else if(response.equals("F")) {
-                return Tile.Player.BLACK;
+                if(response.equals("T") || response.equals("F")) {
+                    Tile.Player player = Tile.Player.WHITE;
+                    if (response.equals("T")) player = Tile.Player.BLACK;
+                    Opponent opponent = new Opponent(player, opponentName);
+                    Platform.runLater(() -> gameEstablisher.joined(opponent));
+                    gameEstablished = true;
+                } else if(response.length() > 4) {
+                    if(response.substring(3, 4).equals(" ")) {
+                        Tile.Player player = Tile.Player.BLACK;
+                        if (response.charAt(2) == 'T') player = Tile.Player.WHITE;
+                        Opponent opponent = new Opponent(player, response.substring(4));
+                        Platform.runLater(() -> gameEstablisher.joined(opponent));
+                        gameEstablished = true;
+                    } else {
+                        ArrayList<String> playerNames = new ArrayList<>();
+                        try {
+                            while (response.startsWith("+") && response.length() > 2) {
+                                playerNames.add(response.substring(2));
+                                response = in.readLine();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        Platform.runLater(() -> gameEstablisher.refreshedPlayerList(playerNames));
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     /**
      * Starts waiting for the opponent to choose a board setting.
      * @param boardEstablisher the {@link BoardEstablisher} to call when a board setting has been chosen by the opponent
      * @see BoardSetting
-     * @see JoinTask.Opponent
+     * @see Opponent
      */
     public void waitBoard(BoardEstablisher boardEstablisher) {
         this.boardEstablisher = boardEstablisher;

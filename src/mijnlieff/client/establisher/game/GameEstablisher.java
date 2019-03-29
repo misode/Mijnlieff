@@ -3,7 +3,6 @@ package mijnlieff.client.establisher.game;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
@@ -13,7 +12,7 @@ import javafx.util.Duration;
 import mijnlieff.client.Connection;
 import mijnlieff.client.board.Tile;
 
-import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Companion class for the player list.
@@ -31,7 +30,7 @@ public class GameEstablisher {
     private boolean enqueued;
 
     public GameEstablisher() {
-        playerRefresher = new Timeline(new KeyFrame(Duration.seconds(2),
+        playerRefresher = new Timeline(new KeyFrame(Duration.seconds(1),
                 e -> updatePlayerList()));
         playerRefresher.setCycleCount(Timeline.INDEFINITE);
         playerRefresher.play();
@@ -39,8 +38,13 @@ public class GameEstablisher {
         enqueued = false;
     }
 
+    public void initialize() {
+        playerList.setCellFactory(PlayerCell::new);
+    }
+
     public void setConnection(Connection connection) {
         this.connection = connection;
+        new Thread(() -> connection.watchGameEstablishing(this)).start();
         updatePlayerList();
     }
 
@@ -48,44 +52,41 @@ public class GameEstablisher {
         this.listener = listener;
     }
 
-    public void initialize() {
-        playerList.setCellFactory(PlayerCell::new);
-    }
-
     public void doQueue(ActionEvent actionEvent) {
         enqueueButton.getStyleClass().removeAll("invalid");
-        if(enqueued) {
-            connection.dequeue();
-        } else {
-            connection.enqueue(this);
-        }
         enqueued = !enqueued;
         if(enqueued) {
-            enqueueButton.setText("Enqueue");
-        } else {
+            connection.enqueue();
             enqueueButton.setText("Dequeue");
+        } else {
+            connection.dequeue();
+            enqueueButton.setText("Enqueue");
         }
     }
 
     public void doSelect(ActionEvent actionEvent) {
         selectButton.getStyleClass().removeAll("invalid");
         String opponentName = playerList.getSelectionModel().getSelectedItem();
-        Tile.Player player = connection.selectOpponent(opponentName);
-        if(opponentName != null && player != null) {
-            joined(new JoinTask.Opponent(player, opponentName));
-        } else {
-            selectButton.getStyleClass().add("invalid");
-        }
+        if(enqueued) doQueue(null);
+        connection.selectOpponent(opponentName);
     }
 
-    public void joined(JoinTask.Opponent opponent) {
+    public void joined(Opponent opponent) {
         playerRefresher.stop();
         listener.establishedGame(opponent);
     }
 
+    public void refreshedPlayerList(ArrayList<String> playerNames) {
+        playerList.setItems(FXCollections.observableArrayList(playerNames));
+    }
+
+    public boolean isEnqueued() {
+        return enqueued;
+    }
+
     private void updatePlayerList() {
-        ObservableList<String> playerNames = FXCollections.observableArrayList(connection.getPlayerList());
-        playerList.setItems(playerNames);
+        System.out.println("Updating player list...");
+        connection.requestPlayerList();
     }
 
     public static class PlayerCell extends ListCell<String> {

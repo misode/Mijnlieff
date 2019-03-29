@@ -21,7 +21,7 @@ public class ReplayHandler implements Runnable {
         try(
                 Socket local = socket; /* closes the socket */
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
         ) {
             Queue<String> replies = getReplies();
             String messageFromClient;

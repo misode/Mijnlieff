@@ -32,7 +32,3 @@
 TextField.invalid {
     -fx-border-color: red;
 }
-
-Button.invalid {
-    -fx-border-color: red;
-}
