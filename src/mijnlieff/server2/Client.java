@@ -2,11 +2,13 @@ package mijnlieff.server2;
 
 public class Client implements AutoCloseable {
 
+    private ClientHandler handler;
     private Writer writer;
     private ClientHandler.State state;
     private String identifier;
 
-    public Client(Writer writer) {
+    public Client(ClientHandler handler, Writer writer) {
+        this.handler = handler;
         this.writer = writer;
         this.state = null;
         this.identifier = null;
@@ -41,6 +43,7 @@ public class Client implements AutoCloseable {
     }
 
     public void close() {
+        handler.remove(this);
         this.state = null;
     }
 

@@ -26,6 +26,7 @@ public class Connection{
     private BoardEstablisherTask boardTask;
     private BoardEstablisher boardEstablisher;
     private String opponentName;
+    private boolean requestedPlayerNames;
 
     /**
      * Creates a new {@link Socket} with the specified host and port
@@ -39,6 +40,7 @@ public class Connection{
         socket = new Socket(hostName, portNumber);
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        requestedPlayerNames = false;
     }
 
     /**
@@ -65,6 +67,7 @@ public class Connection{
      */
     public void requestPlayerList() {
         out.println("W");
+        requestedPlayerNames = true;
     }
 
     /**
@@ -95,9 +98,9 @@ public class Connection{
         try {
             String response;
             while (!gameEstablished && (response = in.readLine()) != null) {
-                System.err.println(response);
-
-                if(response.equals("T") || response.equals("F")) {
+                if(requestedPlayerNames && response.equals("+")) {
+                    refreshedPlayerList(gameEstablisher, response);
+                } else if(response.equals("T") || response.equals("F")) {
                     Tile.Player player = Tile.Player.WHITE;
                     if (response.equals("T")) player = Tile.Player.BLACK;
                     Opponent opponent = new Opponent(player, opponentName);
@@ -111,22 +114,27 @@ public class Connection{
                         Platform.runLater(() -> gameEstablisher.joined(opponent));
                         gameEstablished = true;
                     } else {
-                        ArrayList<String> playerNames = new ArrayList<>();
-                        try {
-                            while (response.startsWith("+") && response.length() > 2) {
-                                playerNames.add(response.substring(2));
-                                response = in.readLine();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        Platform.runLater(() -> gameEstablisher.refreshedPlayerList(playerNames));
+                        refreshedPlayerList(gameEstablisher, response);
                     }
                 }
             }
         } catch (IOException e) {
+            System.err.println("Closed connection");
+        }
+    }
+
+    private void refreshedPlayerList(GameEstablisher establisher, String response) {
+        ArrayList<String> playerNames = new ArrayList<>();
+        try {
+            while (response.startsWith("+") && response.length() > 2) {
+                playerNames.add(response.substring(2));
+                response = in.readLine();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
+        Platform.runLater(() -> establisher.refreshedPlayerList(playerNames));
+        requestedPlayerNames = false;
     }
 
     /**

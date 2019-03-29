@@ -85,7 +85,6 @@ public class GameEstablisher {
     }
 
     private void updatePlayerList() {
-        System.out.println("Updating player list...");
         connection.requestPlayerList();
     }
 

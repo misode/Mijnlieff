@@ -23,9 +23,18 @@ public class ClientHandler implements Runnable {
     }
 
     public Client register(Writer writer) {
-        Client client = new Client(writer);
+        Client client = new Client(this, writer);
         client.setState(new Begin(client));
         return client;
+    }
+
+    public void remove(Client client) {
+        if(client.getState() != null) {
+            client.getState().quit();
+        }
+        if(client.getIdentifier() != null) {
+            clients.remove(client.getIdentifier());
+        }
     }
 
     public void handle(Client client, String line) {
@@ -54,7 +63,7 @@ public class ClientHandler implements Runnable {
     }
 
     private State realHandle(Client client, String line) {
-        System.out.println(client.getIdentifier() + " sent " + line + " in state " + client.getState());
+        if(client.getState() == null) return null;
         String[] split = line.split(" ");
         switch(split[0]) {
             case "Q":
@@ -62,13 +71,13 @@ public class ClientHandler implements Runnable {
             case "W":
                 return client.getState().getQueue();
             case "I":
-                return client.getState().identify(split[1]);
+                return client.getState().identify(line);
             case "P":
                 return client.getState().enqueue();
             case "R":
                 return client.getState().retract();
             case "C":
-                return client.getState().choose(split[1]);
+                return client.getState().choose(line);
             case "X":
                 return client.getState().forward(line);
             default:
@@ -102,14 +111,22 @@ public class ClientHandler implements Runnable {
             return this;
         }
 
-        public State identify(String identifier) { return error(); }
+        public State identify(String line) { return error(); }
         public State enqueue() { return error(); }
         public State retract() { return error(); }
-        public State choose(String identifier) { return error(); }
+        public State choose(String line) { return error(); }
         public State forward(String line) { return error(); }
 
         public boolean isEnqueued() {
             return false;
+        }
+
+        protected String substring(String string, int begin) {
+            if(begin > string.length()) {
+                return "";
+            } else {
+                return string.substring(begin);
+            }
         }
     }
 
@@ -118,7 +135,8 @@ public class ClientHandler implements Runnable {
             super(client);
         }
 
-        public State identify(String identifier) {
+        public State identify(String line) {
+            String identifier = substring(line, 2);
             if(clients.containsKey(identifier)) {
                 client.write("-");
                 return this;
@@ -159,6 +177,7 @@ public class ClientHandler implements Runnable {
         }
 
         public State quit() {
+            clients.remove(client.getIdentifier());
             return null;
         }
 
@@ -166,7 +185,8 @@ public class ClientHandler implements Runnable {
             return new Enqueued(client);
         }
 
-        public State choose(String identifier) {
+        public State choose(String line) {
+            String identifier = substring(line, 2);
             Client other = clients.get(identifier);
             if(other == null || !other.isEnqueued()) {
                 client.write("-");

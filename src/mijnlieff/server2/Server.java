@@ -2,6 +2,8 @@ package mijnlieff.server2;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.io.OutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,9 +43,11 @@ public class Server {
         String remote = socket.getInetAddress().toString() + " : " + socket.getPort();
         System.err.println("Accepted connection from " + remote);
         try(
+                Socket closedSocket = socket;
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 Writer writer = new Writer(new PrintWriter(socket.getOutputStream(), true));
-                Client client = handler.register(writer)
+                Client client = handler.register(writer);
+
         ) {
             pool.execute(writer);
             String inputLine;
@@ -52,12 +56,6 @@ public class Server {
             }
         } catch(IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                socket.close();
-            } catch(IOException e) {
-                e.printStackTrace();
-            }
         }
         System.err.println("Closed connection to " + remote);
     }
