@@ -105,6 +105,8 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
             GameEstablisher companion = loader.getController();
             companion.setConnection(connection);
             companion.setListener(this);
+            double centerX = stage.getX() + stage.getWidth()/2;
+            stage.setX(centerX - scene.getWidth()/2);
             stage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
@@ -128,6 +130,8 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
             companion.setConnection(connection);
             companion.setListener(this);
             companion.setOpponent(opponent);
+            double centerX = stage.getX() + stage.getWidth()/2;
+            stage.setX(centerX - scene.getWidth()/2);
             stage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
@@ -149,6 +153,8 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
             GameCompanion companion = loader.getController();
             companion.setBoardSetting(boardSetting);
             companion.setScene(scene);
+            double centerX = stage.getX() + stage.getWidth()/2;
+            stage.setX(centerX - scene.getWidth()/2);
             stage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
