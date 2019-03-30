@@ -17,7 +17,7 @@ import mijnlieff.client.establisher.connection.ConnectionEstablisher;
 import mijnlieff.client.game.GameCompanion;
 import mijnlieff.client.establisher.game.GameEstablishedListener;
 import mijnlieff.client.establisher.game.GameEstablisher;
-import mijnlieff.client.establisher.game.Opponent;
+import mijnlieff.client.game.Player;
 import mijnlieff.client.viewer.ViewerCompanion;
 
 import javax.imageio.ImageIO;
@@ -117,11 +117,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     /**
      * Changes the stage to establish a board setting after an opponent has been decided.
      * @param opponent the opponent of the game
-     * @see Opponent
+     * @see Player
      */
     @Override
-    public void establishedGame(Opponent opponent) {
-        System.out.println("Established game with player " + opponent.getUsername() + " " + opponent.getPlayer().getName());
+    public void establishedGame(Player opponent) {
+        System.out.println("Established game with player " + opponent.getUsername());
         FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/board/boardChooser.fxml"));
         try {
             Scene scene = new Scene(loader.load(), 512, 315);

@@ -4,6 +4,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import mijnlieff.client.Connection;
 import mijnlieff.client.ConnectionListener;
+import mijnlieff.client.game.Player;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,16 +54,16 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     public void receivedMove(String response) {
-        Move move = decodeMove(connection.getPlayer(), response);
+        Move move = decodeMove(connection.getPlayer().getColor(), response);
         moves.add(move);
     }
 
     private boolean requestMove() {
-        Tile.Player player = Tile.Player.WHITE;
+        Player.Color player = Player.Color.WHITE;
         if(moves.size() > 0) {
             player = moves.get(moves.size() - 1).getTile().getPlayer();
             if(!wasBlockingMove()) {
-                player = player.other();
+                player = player.next();
             }
         }
         try {
@@ -81,7 +82,7 @@ public class Board extends ConnectionListener implements Observable {
         connection.sendMove(encodeMove(move));
     }
 
-    private Move decodeMove(Tile.Player player, String response) {
+    private Move decodeMove(Player.Color player, String response) {
         String[] msg = response.split(" ");
         if(msg[1].equals("T")) {
             reachedEnd = true;

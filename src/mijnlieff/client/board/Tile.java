@@ -1,22 +1,23 @@
 package mijnlieff.client.board;
 
 import javafx.scene.image.Image;
+import mijnlieff.client.game.Player;
 
 import java.util.function.Predicate;
 
 public class Tile {
 
-    private Player player;
+    private Player.Color player;
     private Type type;
     private Image image;
 
-    public Tile(Player player, Type type) {
+    public Tile(Player.Color player, Type type) {
         this.player = player;
         this.type = type;
         this.image = new Image("mijnlieff/client/img/" + player.getName() + "-" + type.getName() + ".png");
     }
 
-    public Player getPlayer() {
+    public Player.Color getPlayer() {
         return player;
     }
 
@@ -34,35 +35,6 @@ public class Tile {
 
     public boolean equals(Tile t) {
         return this.player == t.player && this.type == t.type;
-    }
-
-    public enum Player {
-        WHITE("white"),
-        BLACK("black");
-
-        private String name;
-        private Player other;
-
-        static {
-            WHITE.other = BLACK;
-            BLACK.other = WHITE;
-        }
-
-        Player(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Player other() {
-            return other;
-        }
-
-        public String toString() {
-            return name;
-        }
     }
 
     public enum Type {

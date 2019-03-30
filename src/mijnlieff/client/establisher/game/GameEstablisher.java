@@ -8,6 +8,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import mijnlieff.client.Connection;
 import mijnlieff.client.ConnectionListener;
+import mijnlieff.client.game.Player;
 
 import java.util.ArrayList;
 
@@ -56,7 +57,7 @@ public class GameEstablisher extends ConnectionListener {
     public void doSelect(ActionEvent actionEvent) {
         selectButton.getStyleClass().removeAll("invalid");
         String opponentName = playerList.getSelectionModel().getSelectedItem();
-        if(opponentName.equals(connection.getUsername())) return;
+        if(opponentName.equals(connection.getPlayer().getUsername())) return;
         connection.selectOpponent(opponentName);
     }
 
@@ -66,7 +67,7 @@ public class GameEstablisher extends ConnectionListener {
     }
 
     @Override
-    public void gameEstablished(Opponent opponent) {
+    public void gameEstablished(Player opponent) {
         listener.establishedGame(opponent);
     }
 

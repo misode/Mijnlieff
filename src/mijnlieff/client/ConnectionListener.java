@@ -1,7 +1,7 @@
 package mijnlieff.client;
 
 import mijnlieff.client.board.BoardSetting;
-import mijnlieff.client.establisher.game.Opponent;
+import mijnlieff.client.game.Player;
 
 import java.util.ArrayList;
 
@@ -13,7 +13,7 @@ public abstract class ConnectionListener {
 
     public void updatePlayerList(ArrayList<String> playerNames) {}
 
-    public void gameEstablished(Opponent opponent) {}
+    public void gameEstablished(Player opponent) {}
 
     public void boardEstablished(BoardSetting boardSetting) {}
 

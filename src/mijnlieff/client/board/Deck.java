@@ -2,6 +2,7 @@ package mijnlieff.client.board;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import mijnlieff.client.game.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +15,10 @@ import java.util.stream.Collectors;
 public class Deck implements Observable, InvalidationListener {
 
     private Board board;
-    private Tile.Player player;
+    private Player.Color player;
     private ArrayList<Tile> tiles;
 
-    public Deck(Tile.Player player, Board board) {
+    public Deck(Player.Color player, Board board) {
         this.player = player;
         this.board = board;
         board.addListener(this);

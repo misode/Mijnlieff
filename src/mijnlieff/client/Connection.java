@@ -4,9 +4,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.util.Duration;
-import mijnlieff.client.board.Tile;
 import mijnlieff.client.board.BoardSetting;
-import mijnlieff.client.establisher.game.Opponent;
+import mijnlieff.client.game.Player;
 
 import java.io.*;
 import java.net.*;
@@ -21,8 +20,7 @@ public class Connection{
     private PrintWriter out;
     private BufferedReader in;
 
-    private String username;
-    private Tile.Player player;
+    private Player player;
 
     // State
     private WaitingState state;
@@ -50,16 +48,12 @@ public class Connection{
     }
 
     private void startWatchingPlayerList() {
-        playerRefresher = new Timeline(new KeyFrame(Duration.seconds(3), e -> requestPlayerList()));
+        playerRefresher = new Timeline(new KeyFrame(Duration.seconds(1), e -> requestPlayerList()));
         playerRefresher.setCycleCount(Timeline.INDEFINITE);
         playerRefresher.play();
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public Tile.Player getPlayer() {
+    public Player getPlayer() {
         return player;
     }
 
@@ -75,7 +69,7 @@ public class Connection{
      * @see Thread
      */
     public void identify(String username) {
-        this.username = username;
+        this.player = new Player(username, null);
         new Thread(this::listen).start();
         out.println("I " + username);
         state = WaitingState.IDENTIFY;
@@ -160,11 +154,9 @@ public class Connection{
             while ((response = in.readLine()) != null) {
                 if(response.equals("Q")) {
                     System.err.println("Closed connection");
-
+                    Platform.exit();
                 } else if(state == WaitingState.IDLE) {
                     if(enqueued) {
-                        System.out.println("I was enqueued and someone decided to select me as opponent");
-                        System.out.println("The response was " + response);
                         initializeGame(response);
                     }
 
@@ -183,15 +175,13 @@ public class Connection{
                     state = WaitingState.IDLE;
 
                 } else if(state == WaitingState.OPPONENT) {
-                    System.out.println("I have just decided to select a player");
-                    System.out.println("The response was " + response);
                     if(response.startsWith("+")) {
-                        if(response.length() == 9) {
-                            initializeGame(response);
-                        } else {
+                        if(response.length() == 1) {
                             // This response comes because we first dequeued ourselves
                             // Don't change the state, but skip ahead
                             enqueued = false;
+                        } else {
+                            initializeGame(response);
                         }
                     }
 
@@ -201,7 +191,6 @@ public class Connection{
                     enqueued = !success;
 
                 } else if(state == WaitingState.BOARD) {
-                    System.out.println(response);
                     BoardSetting boardSetting = new BoardSetting(response.substring(2));
                     Platform.runLater(() -> listener.boardEstablished(boardSetting));
                     state = WaitingState.GAME;
@@ -220,9 +209,14 @@ public class Connection{
     private void initializeGame(String response) {
         // black can choose the board, if we got a T it means we can choose the board
         // meaning the color of the opponent must be white
-        player = Tile.Player.WHITE;
-        if (response.substring(2, 3).equals("T")) player = Tile.Player.BLACK;
-        Opponent opponent = new Opponent(player.other(), response.substring(4));
+        Player opponent = new Player(response.substring(4), null);
+        if (response.substring(2, 3).equals("T")) {
+            player.setColor(Player.Color.BLACK);
+            opponent.setColor(Player.Color.WHITE);
+        } else {
+            player.setColor(Player.Color.WHITE);
+            opponent.setColor(Player.Color.BLACK);
+        }
         Platform.runLater(() -> listener.gameEstablished(opponent));
         playerRefresher.stop();
         state = WaitingState.IDLE;
