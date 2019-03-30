@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.shape.Rectangle;
 
 /**
  * View of the board
@@ -14,25 +15,31 @@ import javafx.scene.layout.GridPane;
 
 public class BoardPane extends GridPane implements InvalidationListener {
 
-    private static Image emptyImage = new Image("mijnlieff/client/img/empty.png");
+    private static Image emptyCell = new Image("mijnlieff/client/img/empty.png");
 
     private Board model;
-    private ImageView[][] grid;
+
+    private void initialize() {
+        for(int i = 0; i < model.getWidth(); i++) {
+            for(int j = 0; j < model.getHeight(); j++) {
+                if(model.hasCell(i, j)) {
+                    ImageView image = new ImageView(emptyCell);
+                    image.getStyleClass().add("board-cell");
+                    image.setFitHeight(100);
+                    image.setFitWidth(100);
+                    add(image, i, j);
+                } else {
+                    Rectangle rectangle = new Rectangle(100, 100);
+                    rectangle.getStyleClass().add("board-empty");
+                    add(rectangle, i, j);
+                }
+            }
+        }
+    }
 
     public BoardPane() {
         getStyleClass().add("board-pane");
         setAlignment(Pos.CENTER);
-        grid = new ImageView[4][4];
-        for(int i = 0; i < 4; i++) {
-            for(int j = 0; j < 4; j++) {
-                ImageView image = new ImageView(emptyImage);
-                image.getStyleClass().add("board-image");
-                image.setFitHeight(150);
-                image.setFitWidth(150);
-                add(image, i, j);
-                grid[j][i] = image;
-            }
-        }
     }
 
     public void setModel(Board model) {
@@ -46,13 +53,21 @@ public class BoardPane extends GridPane implements InvalidationListener {
 
     @Override
     public void invalidated(Observable observable) {
-        for(Node n : getChildren()) {
-            ImageView cell = (ImageView)n;
-            cell.setImage(emptyImage);
+        if(getChildren().size() == 0) {
+            initialize();
         }
-        for(Move m : model.getMoves()) {
-            ImageView cell = grid[m.getX()][m.getY()];
-            cell.setImage(m.getTile().getImage());
+        for(Node n : getChildren()) {
+            int x = GridPane.getColumnIndex(n);
+            int y = GridPane.getRowIndex(n);
+            if(model.hasCell(x, y)) {
+                Tile tile = model.getTile(x, y);
+                ImageView cell = (ImageView) n;
+                if(tile == null) {
+                    cell.setImage(emptyCell);
+                } else {
+                    cell.setImage(tile.getImage());
+                }
+            }
         }
     }
 }

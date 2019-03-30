@@ -11,10 +11,10 @@ import mijnlieff.client.*;
 import mijnlieff.client.board.Board;
 import mijnlieff.client.establisher.board.BoardEstablishedListener;
 import mijnlieff.client.establisher.board.BoardEstablisher;
-import mijnlieff.client.establisher.board.BoardSetting;
+import mijnlieff.client.board.BoardSetting;
 import mijnlieff.client.establisher.connection.ConnectionEstablishedListener;
 import mijnlieff.client.establisher.connection.ConnectionEstablisher;
-import mijnlieff.client.GameCompanion;
+import mijnlieff.client.game.GameCompanion;
 import mijnlieff.client.establisher.game.GameEstablishedListener;
 import mijnlieff.client.establisher.game.GameEstablisher;
 import mijnlieff.client.establisher.game.Opponent;
@@ -61,42 +61,51 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
         this.stage = stage;
+        stage.setResizable(false);
+        stage.setTitle("Mijnlieff");
+
         if(mode == Mode.GAME) initializeGame();
         if(mode == Mode.VIEWER || mode == Mode.VIEWER_TEST) initializeViewer();
         if(mode == Mode.INVALID) Platform.exit();
+
+        stage.show();
     }
 
     /**
      * Initializes the game stage to establish a connection
-     * @throws IOException
      */
-    private void initializeGame() throws IOException {
+    private void initializeGame() {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/connection/connection.fxml"));
-        Scene scene = new Scene(loader.load(), 300, 120);
-        ConnectionEstablisher companion = loader.getController();
-
-        changeScene(scene);
-        companion.setListener(this);
+        try {
+            Scene scene = new Scene(loader.load(), 300, 120);
+            scene.getStylesheets().add("mijnlieff/client/style.css");
+            ConnectionEstablisher companion = loader.getController();
+            stage.setScene(scene);
+            companion.setListener(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Platform.exit();
+        }
     }
 
     /**
      * Stores the connection and changes the stage to establish a game from a playerlist.
      * @param connection the connection that was just established
-     * @param username the username that was chosen by the user
      * @see Connection
      */
     @Override
-    public void establishedConnection(Connection connection, String username){
+    public void establishedConnection(Connection connection){
         this.connection = connection;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/game/playerlist.fxml"));
         try {
             Scene scene = new Scene(loader.load(), 350, 500);
+            scene.getStylesheets().add("mijnlieff/client/style.css");
             GameEstablisher companion = loader.getController();
             companion.setConnection(connection);
             companion.setListener(this);
-            changeScene(scene);
+            stage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
             Platform.exit();
@@ -110,15 +119,16 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
      */
     @Override
     public void establishedGame(Opponent opponent) {
-        System.out.println("Established game with player " + opponent.getUsername());
+        System.out.println("Established game with player " + opponent.getUsername() + " " + opponent.getPlayer().getName());
         FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/board/boardChooser.fxml"));
         try {
             Scene scene = new Scene(loader.load(), 512, 315);
+            scene.getStylesheets().add("mijnlieff/client/style.css");
             BoardEstablisher companion = loader.getController();
             companion.setConnection(connection);
             companion.setListener(this);
             companion.setOpponent(opponent);
-            changeScene(scene);
+            stage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
             Platform.exit();
@@ -132,65 +142,60 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
      */
     @Override
     public void establishedBoard(BoardSetting boardSetting) {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/game.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/game/game.fxml"));
         try {
             Scene scene = new Scene(loader.load(), 810, 660);
+            scene.getStylesheets().add("mijnlieff/client/style.css");
             GameCompanion companion = loader.getController();
-            companion.setConnection(connection);
             companion.setBoardSetting(boardSetting);
-            changeScene(scene);
+            companion.setScene(scene);
+            stage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Initializes the viewer by creating a new {@Link Connection} and loading a viewer stage.
+     * Initializes the viewer by creating a new {@link Connection} and loading a viewer stage.
      * If screenshot is not null, this will also take a snapshot of the scene and write it to the screenshot path
-     * @throws IOException
      * @see Connection
      */
-    private void initializeViewer() throws IOException {
-        connection = new Connection(hostName, portNumber);
-
+    private void initializeViewer() {
+        try {
+            connection = new Connection(hostName, portNumber);
+        } catch (IOException e) {
+            System.err.println("Failed to make a connection to " + hostName + ":" + portNumber);
+            e.printStackTrace();
+            Platform.exit();
+        }
         FXMLLoader loader = new FXMLLoader(getClass().getResource("client/viewer/viewer.fxml"));
-        Scene scene = new Scene(loader.load(), 810, 680);
-        ViewerCompanion companion = loader.getController();
-        companion.setConnection(connection);
+        try {
+            Scene scene = new Scene(loader.load(), 810, 680);
+            scene.getStylesheets().add("mijnlieff/client/style.css");
+            ViewerCompanion companion = loader.getController();
+            companion.setConnection(connection);
+            stage.setScene(scene);
+            companion.setScene(scene);
 
-        changeScene(scene);
-        companion.setScene(scene);
+            if(screenshot != null) {
+                Board board = companion.getModel();
+                while(board.setCurrentMove(board.getCurrentMove() + 1));
 
-        if(screenshot != null) {
-            Board board = companion.getModel();
-            while(board.setCurrentMove(board.getCurrentMove() + 1));
+                WritableImage snapshot = scene.snapshot(new WritableImage((int)scene.getWidth(), (int)scene.getHeight()));
+                BufferedImage img = SwingFXUtils.fromFXImage(snapshot, null);
+                ImageIO.write(img, "png", new File(screenshot));
 
-            WritableImage snapshot = scene.snapshot(new WritableImage((int)scene.getWidth(), (int)scene.getHeight()));
-            BufferedImage img = SwingFXUtils.fromFXImage(snapshot, null);
-            ImageIO.write(img, "png", new File(screenshot));
-
+                Platform.exit();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
             Platform.exit();
         }
     }
 
     /**
-     * Updates the initial stage with a new scene
-     * @param scene the new scene to apply
-     * @see Scene
-     */
-    private void changeScene(Scene scene) {
-        scene.getStylesheets().add("mijnlieff/client/style.css");
-
-        stage.setScene(scene);
-        stage.setTitle("Mijnlieff");
-        stage.setResizable(false);
-        stage.centerOnScreen();
-        stage.show();
-    }
-
-    /**
      * Called by JavaFX when stopping the application, closes the connection
-     * @throws IOException
+     * @throws IOException if stopping this connection fails
      */
     @Override
     public void stop() throws IOException {

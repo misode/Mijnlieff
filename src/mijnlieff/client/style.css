@@ -23,8 +23,13 @@
     -fx-spacing: 3;
 }
 
-.board-image {
+.board-cell {
 }
+
+.board-empty {
+    -fx-opacity: 0;
+}
+
 
 .deck-image {
 }

@@ -1,13 +1,11 @@
 package mijnlieff.client;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.concurrent.Worker;
-import mijnlieff.client.board.Move;
+import javafx.util.Duration;
 import mijnlieff.client.board.Tile;
-import mijnlieff.client.establisher.board.BoardEstablisher;
-import mijnlieff.client.establisher.board.BoardEstablisherTask;
-import mijnlieff.client.establisher.board.BoardSetting;
-import mijnlieff.client.establisher.game.GameEstablisher;
+import mijnlieff.client.board.BoardSetting;
 import mijnlieff.client.establisher.game.Opponent;
 
 import java.io.*;
@@ -23,10 +21,16 @@ public class Connection{
     private PrintWriter out;
     private BufferedReader in;
 
-    private BoardEstablisherTask boardTask;
-    private BoardEstablisher boardEstablisher;
-    private String opponentName;
-    private boolean requestedPlayerNames;
+    private String username;
+    private Tile.Player player;
+
+    // State
+    private WaitingState state;
+    private boolean enqueued;
+
+    private Timeline playerRefresher;
+
+    private ConnectionListener listener;
 
     /**
      * Creates a new {@link Socket} with the specified host and port
@@ -40,34 +44,53 @@ public class Connection{
         socket = new Socket(hostName, portNumber);
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        requestedPlayerNames = false;
+
+        state = WaitingState.IDLE;
+        enqueued = false;
+    }
+
+    private void startWatchingPlayerList() {
+        playerRefresher = new Timeline(new KeyFrame(Duration.seconds(3), e -> requestPlayerList()));
+        playerRefresher.setCycleCount(Timeline.INDEFINITE);
+        playerRefresher.play();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public Tile.Player getPlayer() {
+        return player;
+    }
+
+    public void setListener(ConnectionListener listener) {
+        this.listener = listener;
     }
 
     /**
      * Lets the server know who the player is.
      * No authentication is required.
+     * Starts a thread to listen to any responses from this point.
      * @param username the username to pass to the server
-     * @return {@code true} if the username is valid
-     *         {@code false} if the username is invalid because it was already taken
+     * @see Thread
      */
-    public boolean identify(String username) {
+    public void identify(String username) {
+        this.username = username;
+        new Thread(this::listen).start();
         out.println("I " + username);
-        try {
-            String response = in.readLine();
-            System.out.println(response);
-            return response.equals("+");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+        state = WaitingState.IDENTIFY;
+
+        startWatchingPlayerList();
     }
 
     /**
      * Requests the player list from the server.
      */
-    public void requestPlayerList() {
+    private void requestPlayerList() {
+        if(state != WaitingState.IDLE) return;
+
         out.println("W");
-        requestedPlayerNames = true;
+        state = WaitingState.PLAYERLIST;
     }
 
     /**
@@ -75,105 +98,149 @@ public class Connection{
      */
     public void enqueue() {
         out.println("P");
+        state = WaitingState.IDLE;
+        enqueued = true;
     }
 
     /**
      * Removes the player from the global player list.
      */
     public void dequeue() {
+        if(state != WaitingState.IDLE) return;
+
         out.println("R");
+        state = WaitingState.DEQUEUED;
     }
 
     /**
-     *
+     * Selects the opponent from the queued player list to play against.
      * @param opponentName the name of the opponent that is used to start the game.
      */
     public void selectOpponent(String opponentName) {
-        this.opponentName = opponentName;
+        if(state != WaitingState.IDLE) return;
+
+        // Make sure the player is dequeued before we try to select an opponent
+        if(enqueued) dequeue();
+
         out.println("C "+opponentName);
-    }
-
-    public void watchGameEstablishing(GameEstablisher gameEstablisher) {
-        boolean gameEstablished = false;
-        try {
-            String response;
-            while (!gameEstablished && (response = in.readLine()) != null) {
-                if(requestedPlayerNames && response.equals("+")) {
-                    refreshedPlayerList(gameEstablisher, response);
-                } else if(response.equals("T") || response.equals("F")) {
-                    Tile.Player player = Tile.Player.WHITE;
-                    if (response.equals("T")) player = Tile.Player.BLACK;
-                    Opponent opponent = new Opponent(player, opponentName);
-                    Platform.runLater(() -> gameEstablisher.joined(opponent));
-                    gameEstablished = true;
-                } else if(response.length() > 4) {
-                    if(response.substring(3, 4).equals(" ")) {
-                        Tile.Player player = Tile.Player.BLACK;
-                        if (response.charAt(2) == 'T') player = Tile.Player.WHITE;
-                        Opponent opponent = new Opponent(player, response.substring(4));
-                        Platform.runLater(() -> gameEstablisher.joined(opponent));
-                        gameEstablished = true;
-                    } else {
-                        refreshedPlayerList(gameEstablisher, response);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Closed connection");
-        }
-    }
-
-    private void refreshedPlayerList(GameEstablisher establisher, String response) {
-        ArrayList<String> playerNames = new ArrayList<>();
-        try {
-            while (response.startsWith("+") && response.length() > 2) {
-                playerNames.add(response.substring(2));
-                response = in.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Platform.runLater(() -> establisher.refreshedPlayerList(playerNames));
-        requestedPlayerNames = false;
-    }
-
-    /**
-     * Starts waiting for the opponent to choose a board setting.
-     * @param boardEstablisher the {@link BoardEstablisher} to call when a board setting has been chosen by the opponent
-     * @see BoardSetting
-     * @see Opponent
-     */
-    public void waitBoard(BoardEstablisher boardEstablisher) {
-        this.boardEstablisher = boardEstablisher;
-
-        boardTask = new BoardEstablisherTask(in);
-        boardTask.stateProperty().addListener(o -> this.recievedBoard());
-        new Thread(boardTask).start();
-    }
-
-    /**
-     * Notifies the {@link BoardEstablisher} if the board has been chosen.
-     * Called by {@link BoardEstablisherTask}
-     */
-    private void recievedBoard() {
-        if(boardTask.getState() == Worker.State.SUCCEEDED) {
-            boardEstablisher.selectedBoard(boardTask.getValue());
-        } else if(boardTask.getState() == Worker.State.FAILED) {
-            System.err.println("Failed getting a board setting");
-        }
+        state = WaitingState.OPPONENT;
     }
 
     public void sendBoard(BoardSetting boardSetting) {
         out.println("X " + boardSetting.toString());
+        state = WaitingState.GAME;
+
     }
 
-    public void sendMove(Move move) {
-        // TODO: implement method
+    public void sendMove(String encodedMove) {
+        out.println(encodedMove);
     }
 
     public String viewNext() throws IOException {
         out.println("X");
         return in.readLine();
+    }
+
+    /**
+     * Marks the stage to wait for the opponent to choose a board.
+     */
+    public void waitForBoard() {
+        if(state == WaitingState.IDLE) {
+            state = WaitingState.BOARD;
+        }
+    }
+
+    /**
+     * Listens to the server for any responses.
+     * When it gets a response it will call the responsible method in {@link ConnectionListener}.
+     */
+    private void listen() {
+        try {
+            String response;
+            while ((response = in.readLine()) != null) {
+                if(response.equals("Q")) {
+                    System.err.println("Closed connection");
+
+                } else if(state == WaitingState.IDLE) {
+                    if(enqueued) {
+                        System.out.println("I was enqueued and someone decided to select me as opponent");
+                        System.out.println("The response was " + response);
+                        initializeGame(response);
+                    }
+
+                } else if(state == WaitingState.IDENTIFY) {
+                    boolean success = response.equals("+");
+                    Platform.runLater(() -> listener.identified(success));
+                    state = WaitingState.IDLE;
+
+                } else if(state == WaitingState.PLAYERLIST) {
+                    ArrayList<String> playerNames = new ArrayList<>();
+                    while (response.startsWith("+") && response.length() > 2) {
+                        playerNames.add(response.substring(2));
+                        response = in.readLine();
+                    }
+                    Platform.runLater(() -> listener.updatePlayerList(playerNames));
+                    state = WaitingState.IDLE;
+
+                } else if(state == WaitingState.OPPONENT) {
+                    System.out.println("I have just decided to select a player");
+                    System.out.println("The response was " + response);
+                    if(response.startsWith("+")) {
+                        if(response.length() == 9) {
+                            initializeGame(response);
+                        } else {
+                            // This response comes because we first dequeued ourselves
+                            // Don't change the state, but skip ahead
+                            enqueued = false;
+                        }
+                    }
+
+                } else if(state == WaitingState.DEQUEUED) {
+                    boolean success = response.equals("+");
+                    state = WaitingState.IDLE;
+                    enqueued = !success;
+
+                } else if(state == WaitingState.BOARD) {
+                    System.out.println(response);
+                    BoardSetting boardSetting = new BoardSetting(response.substring(2));
+                    Platform.runLater(() -> listener.boardEstablished(boardSetting));
+                    state = WaitingState.GAME;
+
+                } else if(state == WaitingState.GAME) {
+                    if(response.length() == 9 ) {
+                        listener.receivedMove(response);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initializeGame(String response) {
+        // black can choose the board, if we got a T it means we can choose the board
+        // meaning the color of the opponent must be white
+        player = Tile.Player.WHITE;
+        if (response.substring(2, 3).equals("T")) player = Tile.Player.BLACK;
+        Opponent opponent = new Opponent(player.other(), response.substring(4));
+        Platform.runLater(() -> listener.gameEstablished(opponent));
+        playerRefresher.stop();
+        state = WaitingState.IDLE;
+    }
+
+    /**
+     * Shuts the game and connection down.
+     * Used when the server or opponent sent a malicious response.
+     */
+    public void detectException() {
+        System.err.println("Detected malicious response from server or opponent");
+        System.err.println("Shutting down game and connection :/");
+        try {
+            stop();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Platform.exit();
     }
 
     public void stop() throws IOException {
@@ -184,5 +251,15 @@ public class Connection{
             out.close();
             in.close();
         }
+    }
+
+    private enum WaitingState {
+        IDLE,
+        IDENTIFY,
+        PLAYERLIST,
+        DEQUEUED,
+        BOARD,
+        OPPONENT,
+        GAME
     }
 }

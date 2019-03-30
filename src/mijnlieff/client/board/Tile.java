@@ -41,11 +41,11 @@ public class Tile {
         BLACK("black");
 
         private String name;
-        private Player next;
+        private Player other;
 
         static {
-            WHITE.next = BLACK;
-            BLACK.next = WHITE;
+            WHITE.other = BLACK;
+            BLACK.other = WHITE;
         }
 
         Player(String name) {
@@ -56,8 +56,8 @@ public class Tile {
             return name;
         }
 
-        public Player next() {
-            return next;
+        public Player other() {
+            return other;
         }
 
         public String toString() {
@@ -66,16 +66,18 @@ public class Tile {
     }
 
     public enum Type {
-        TOREN("toren", p -> (p.x == 0 || p.y == 0)),
-        LOPER("loper", p -> (p.x == -p.y || p.x == p.y)),
-        PUSHER("pusher", p -> (p.x > 1 || p.x < -1 || p.y > 1 || p.y < -1)),
-        PULLER("puller", p -> (p.x <= 1 && p.x >= -1 && p.y <= 1 && p.y >= -1));
+        TOREN("toren", "+", p -> (p.x == 0 || p.y == 0)),
+        LOPER("loper", "X", p -> (p.x == -p.y || p.x == p.y)),
+        PUSHER("pusher", "@", p -> (p.x > 1 || p.x < -1 || p.y > 1 || p.y < -1)),
+        PULLER("puller", "o", p -> (p.x <= 1 && p.x >= -1 && p.y <= 1 && p.y >= -1));
 
         private String name;
+        private String chr;
         private Predicate<Pos> allowed;
 
-        Type(String name, Predicate<Pos> allowed) {
+        Type(String name, String chr, Predicate<Pos> allowed) {
             this.name = name;
+            this.chr = chr;
             this.allowed = allowed;
         }
 
@@ -89,6 +91,10 @@ public class Tile {
             if(str.equals("@")) return PUSHER;
             if(str.equals("o")) return PULLER;
             return null;
+        }
+
+        public String getChar() {
+            return chr;
         }
 
         public String getName() {
