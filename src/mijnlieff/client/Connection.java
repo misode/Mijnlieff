@@ -30,19 +30,24 @@ public class Connection{
 
     private ConnectionListener listener;
 
+    public Connection() {
+
+    }
+
     /**
-     * Creates a new {@link Socket} with the specified host and port
+     * Starts the connection with the specified hostName and portNumber.
      * @param hostName the host name to create this connection
      * @param portNumber the port number to create this connection
      * @throws IOException if the socket could not be created
      * @see Socket
      */
-    public Connection(String hostName, int portNumber) throws IOException {
+    public void start(String hostName, int portNumber) throws IOException {
         System.out.println("Opening connection: " + hostName + " " + portNumber);
         socket = new Socket(hostName, portNumber);
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+        player = new Player("Viewer", null);
         state = WaitingState.IDLE;
         enqueued = false;
     }
@@ -69,7 +74,7 @@ public class Connection{
      * @see Thread
      */
     public void identify(String username) {
-        this.player = new Player(username, null);
+        player.setUsername(username);
         new Thread(this::listen).start();
         out.println("I " + username);
         state = WaitingState.IDENTIFY;
@@ -82,6 +87,7 @@ public class Connection{
      */
     private void requestPlayerList() {
         if(state != WaitingState.IDLE) return;
+        System.out.println("requesting player list");
 
         out.println("W");
         state = WaitingState.PLAYERLIST;
@@ -91,6 +97,7 @@ public class Connection{
      * Marks the player on the global player list, available for any opponent to start a game.
      */
     public void enqueue() {
+        if(state != WaitingState.IDLE) return;
         out.println("P");
         state = WaitingState.IDLE;
         enqueued = true;
@@ -121,6 +128,7 @@ public class Connection{
     }
 
     public void sendBoard(BoardSetting boardSetting) {
+        if(state != WaitingState.IDLE) return;
         out.println("X " + boardSetting.toString());
         state = WaitingState.GAME;
 
@@ -202,13 +210,12 @@ public class Connection{
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Closed connection");
         }
     }
 
     private void initializeGame(String response) {
         // black can choose the board, if we got a T it means we can choose the board
-        // meaning the color of the opponent must be white
         Player opponent = new Player(response.substring(4), null);
         if (response.substring(2, 3).equals("T")) {
             player.setColor(Player.Color.BLACK);

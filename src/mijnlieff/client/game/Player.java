@@ -18,6 +18,10 @@ public class Player {
         return color;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public void setColor(Color color) {
         this.color = color;
     }

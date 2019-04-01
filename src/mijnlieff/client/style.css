@@ -1,16 +1,24 @@
 .root {
-
+    -fx-padding: 20;
 }
 
-.button {
+VBox {
+    -fx-spacing: 5;
 }
 
-.button:disabled {
-
+HBox {
+    -fx-spacing: 5;
 }
 
-.button:pressed {
+TextField.invalid {
+    -fx-border-color: red;
+}
 
+.board-cell {
+}
+
+.board-empty {
+    -fx-opacity: 0;
 }
 
 .board-pane {
@@ -21,19 +29,4 @@
 
 .deck-pane {
     -fx-spacing: 3;
-}
-
-.board-cell {
-}
-
-.board-empty {
-    -fx-opacity: 0;
-}
-
-
-.deck-image {
-}
-
-TextField.invalid {
-    -fx-border-color: red;
 }

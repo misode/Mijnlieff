@@ -17,23 +17,30 @@ import java.util.stream.Collectors;
 
 public class Board extends ConnectionListener implements Observable {
 
-    private Connection connection;
-
     private ArrayList<Move> moves;
     private int width, height;
     private boolean[][] cells;
     private int currentMove;
     private boolean reachedEnd;
+    private boolean onTurn;
 
-    public Board() {
+    private Deck whiteDeck;
+    private Deck blackDeck;
+
+    public Board(Connection connection, BoardSetting boardSetting) {
+        super(connection);
         moves = new ArrayList<>();
         width = 0;
         height = 0;
         currentMove = -1;
         reachedEnd = false;
-    }
+        onTurn = false;
+        whiteDeck = new Deck(Player.Color.WHITE, this);
+        blackDeck = new Deck(Player.Color.BLACK, this);
 
-    public void setBoardSetting(BoardSetting boardSetting) {
+        // In the viewer mode the player's color will be null meaning onTurn will stay false
+        onTurn = connection.getPlayer().getColor() == Player.Color.WHITE;
+
         for(int i = 0; i < 4; i++) {
             if(boardSetting.getX(i) + 2 > width) width = boardSetting.getX(i) + 2;
             if(boardSetting.getY(i) + 2 > height) height = boardSetting.getY(i) + 2;
@@ -49,13 +56,18 @@ public class Board extends ConnectionListener implements Observable {
         }
     }
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
     public void receivedMove(String response) {
         Move move = decodeMove(connection.getPlayer().getColor(), response);
         moves.add(move);
+    }
+
+    public Deck getDeck(Player.Color playerColor) {
+        if(playerColor == Player.Color.WHITE) return whiteDeck;
+        else return blackDeck;
+    }
+
+    public Player getPlayer() {
+        return connection.getPlayer();
     }
 
     private boolean requestMove() {
@@ -78,7 +90,14 @@ public class Board extends ConnectionListener implements Observable {
         }
     }
 
-    public void sendMove(Move move) {
+    public void transferTile(Tile deckTile, int x, int y) {
+        if (!isValidCell(x, y)) return;
+        sendMove(new Move(x, y, deckTile));
+        getDeck(connection.getPlayer().getColor()).removeOneFromDeck(deckTile);
+        fireInvalidationEvent();
+    }
+
+    private void sendMove(Move move) {
         connection.sendMove(encodeMove(move));
     }
 
@@ -108,16 +127,28 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     private boolean wasBlockingMove() {
-        Move lastMove = moves.get(moves.size() - 1);
         for(int i = 0; i < width; i++) {
             for(int j = 0; j < height; j++) {
-                if(hasCell(i, j) && getTile(i, j) == null &&
-                        lastMove.getTile().getType().isAllowed(i - lastMove.getX(), j - lastMove.getY())) {
+                if(!isValidCell(i, j)) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    private boolean isValidCell(int x, int y) {
+        if(moves.size() > 0) {
+            Move lastMove = moves.get(moves.size() - 1);
+            if(!lastMove.getTile().getType().isAllowed(x - lastMove.getX(), y - lastMove.getY())) {
+                return false;
+            }
+        }
+        return !(hasCell(x, y) && getTile(x, y) == null);
+    }
+
+    public boolean isOnTurn() {
+        return onTurn;
     }
 
     public boolean setCurrentMove(int newMove) {

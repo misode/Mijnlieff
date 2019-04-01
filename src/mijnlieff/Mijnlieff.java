@@ -63,7 +63,6 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     @Override
     public void start(Stage stage) {
         this.stage = stage;
-        stage.setResizable(false);
         stage.setTitle("Mijnlieff");
 
         if(mode == Mode.GAME) initializeGame();
@@ -77,17 +76,9 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
      * Initializes the game stage to establish a connection
      */
     private void initializeGame() {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/connection/connection.fxml"));
-        try {
-            Scene scene = new Scene(loader.load(), 300, 120);
-            scene.getStylesheets().add("mijnlieff/client/style.css");
-            ConnectionEstablisher companion = loader.getController();
-            stage.setScene(scene);
-            companion.setListener(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Platform.exit();
-        }
+        ConnectionEstablisher controller = new ConnectionEstablisher(this);
+        Scene scene = new Scene(controller.asParent(), 300, 120);
+        stage.setScene(scene);
     }
 
     /**
@@ -98,20 +89,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     @Override
     public void establishedConnection(Connection connection){
         this.connection = connection;
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/game/playerlist.fxml"));
-        try {
-            Scene scene = new Scene(loader.load(), 350, 500);
-            scene.getStylesheets().add("mijnlieff/client/style.css");
-            GameEstablisher companion = loader.getController();
-            companion.setConnection(connection);
-            companion.setListener(this);
-            double centerX = stage.getX() + stage.getWidth()/2;
-            stage.setX(centerX - scene.getWidth()/2);
-            stage.setScene(scene);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Platform.exit();
-        }
+        GameEstablisher controller = new GameEstablisher(connection, this);
+        Scene scene = new Scene(controller.asParent(), 350, 500);
+        double centerX = stage.getX() + stage.getWidth()/2;
+        stage.setX(centerX - scene.getWidth()/2);
+        stage.setScene(scene);
     }
 
     /**
@@ -122,21 +104,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     @Override
     public void establishedGame(Player opponent) {
         System.out.println("Established game with player " + opponent.getUsername());
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/establisher/board/boardChooser.fxml"));
-        try {
-            Scene scene = new Scene(loader.load(), 512, 315);
-            scene.getStylesheets().add("mijnlieff/client/style.css");
-            BoardEstablisher companion = loader.getController();
-            companion.setConnection(connection);
-            companion.setListener(this);
-            companion.setOpponent(opponent);
-            double centerX = stage.getX() + stage.getWidth()/2;
-            stage.setX(centerX - scene.getWidth()/2);
-            stage.setScene(scene);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Platform.exit();
-        }
+        BoardEstablisher boardEstablisher = new BoardEstablisher(connection, opponent, this);
+        Scene scene = new Scene(boardEstablisher.asParent(), 512, 315);
+        double centerX = stage.getX() + stage.getWidth()/2;
+        stage.setX(centerX - scene.getWidth()/2);
+        stage.setScene(scene);
     }
 
     /**
@@ -146,19 +118,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
      */
     @Override
     public void establishedBoard(BoardSetting boardSetting) {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/game/game.fxml"));
-        try {
-            Scene scene = new Scene(loader.load(), 810, 660);
-            scene.getStylesheets().add("mijnlieff/client/style.css");
-            GameCompanion companion = loader.getController();
-            companion.setBoardSetting(boardSetting);
-            companion.setScene(scene);
-            double centerX = stage.getX() + stage.getWidth()/2;
-            stage.setX(centerX - scene.getWidth()/2);
-            stage.setScene(scene);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        GameCompanion controller = new GameCompanion(connection, boardSetting);
+        Scene scene = new Scene(controller.asParent(), 810, 660);
+        double centerX = stage.getX() + stage.getWidth()/2;
+        stage.setX(centerX - scene.getWidth()/2);
+        stage.setScene(scene);
     }
 
     /**
@@ -168,33 +132,29 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
      */
     private void initializeViewer() {
         try {
-            connection = new Connection(hostName, portNumber);
+            connection = new Connection();
+            connection.start(hostName, portNumber);
         } catch (IOException e) {
             System.err.println("Failed to make a connection to " + hostName + ":" + portNumber);
             e.printStackTrace();
             Platform.exit();
         }
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("client/viewer/viewer.fxml"));
-        try {
-            Scene scene = new Scene(loader.load(), 810, 680);
-            scene.getStylesheets().add("mijnlieff/client/style.css");
-            ViewerCompanion companion = loader.getController();
-            companion.setConnection(connection);
-            stage.setScene(scene);
-            companion.setScene(scene);
+        ViewerCompanion controller = new ViewerCompanion(connection, BoardSetting.DEFAULT);
+        Scene scene = new Scene(controller.asParent(), 810, 680);
+        stage.setScene(scene);
 
-            if(screenshot != null) {
-                Board board = companion.getModel();
-                while(board.setCurrentMove(board.getCurrentMove() + 1));
+        if(screenshot != null) {
+            Board board = controller.getModel();
+            while(board.setCurrentMove(board.getCurrentMove() + 1));
 
+            try {
                 WritableImage snapshot = scene.snapshot(new WritableImage((int)scene.getWidth(), (int)scene.getHeight()));
                 BufferedImage img = SwingFXUtils.fromFXImage(snapshot, null);
                 ImageIO.write(img, "png", new File(screenshot));
-
-                Platform.exit();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+
             Platform.exit();
         }
     }

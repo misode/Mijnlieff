@@ -9,6 +9,11 @@ public abstract class ConnectionListener {
 
     protected Connection connection;
 
+    public ConnectionListener(Connection connection) {
+        this.connection = connection;
+        connection.setListener(this);
+    }
+
     public void identified(boolean success) {}
 
     public void updatePlayerList(ArrayList<String> playerNames) {}

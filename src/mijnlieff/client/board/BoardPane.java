@@ -8,6 +8,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
+import mijnlieff.client.game.GameCompanion;
 
 /**
  * View of the board
@@ -18,6 +19,16 @@ public class BoardPane extends GridPane implements InvalidationListener {
     private static Image emptyCell = new Image("mijnlieff/client/img/empty.png");
 
     private Board model;
+    private GameCompanion controller;
+
+    public BoardPane(Board model, GameCompanion controller) {
+        this.model = model;
+        this.controller = controller;
+        model.addListener(this);
+
+        getStyleClass().add("board-pane");
+        setAlignment(Pos.CENTER);
+    }
 
     private void initialize() {
         for(int i = 0; i < model.getWidth(); i++) {
@@ -37,20 +48,6 @@ public class BoardPane extends GridPane implements InvalidationListener {
         }
     }
 
-    public BoardPane() {
-        getStyleClass().add("board-pane");
-        setAlignment(Pos.CENTER);
-    }
-
-    public void setModel(Board model) {
-        this.model = model;
-        model.addListener(this);
-    }
-
-    public Board getModel() {
-        return model;
-    }
-
     @Override
     public void invalidated(Observable observable) {
         if(getChildren().size() == 0) {
@@ -64,6 +61,9 @@ public class BoardPane extends GridPane implements InvalidationListener {
                 ImageView cell = (ImageView) n;
                 if(tile == null) {
                     cell.setImage(emptyCell);
+                    if(controller != null) {
+                        cell.setOnMouseClicked(controller::selectBoardTile);
+                    }
                 } else {
                     cell.setImage(tile.getImage());
                 }

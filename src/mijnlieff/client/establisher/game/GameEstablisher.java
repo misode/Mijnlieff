@@ -1,11 +1,13 @@
 package mijnlieff.client.establisher.game;
 
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import mijnlieff.client.Connection;
 import mijnlieff.client.ConnectionListener;
 import mijnlieff.client.game.Player;
@@ -17,32 +19,42 @@ import java.util.ArrayList;
  * Used by Mijnlieff to find two players for a game
  */
 public class GameEstablisher extends ConnectionListener {
-    
-    public ListView<String> playerList;
-    public Button enqueueButton;
-    public Button selectButton;
+
+    private VBox view;
+
+    private ListView<String> playerList;
+    private Button enqueueButton;
+    private Button selectButton;
 
     private GameEstablishedListener listener;
     private boolean enqueued;
 
-    public GameEstablisher() {
-        enqueued = false;
-    }
-
-    public void initialize() {
-        playerList.setCellFactory(l -> new PlayerCell());
-    }
-
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-        this.connection.setListener(this);
-    }
-
-    public void setListener(GameEstablishedListener listener) {
+    public GameEstablisher(Connection connection, GameEstablishedListener listener) {
+        super(connection);
+        initialize();
         this.listener = listener;
     }
 
-    public void doQueue(ActionEvent actionEvent) {
+    private void initialize() {
+        playerList = new ListView<>();
+        playerList.setCellFactory(l -> new PlayerCell());
+
+        enqueueButton = new Button("Enqueue");
+        enqueueButton.setOnAction(e -> doQueue());
+
+        selectButton = new Button("Select");
+        selectButton.setOnAction(e -> doSelect());
+
+        view = new VBox(playerList, new HBox(enqueueButton, selectButton));
+        view.getStylesheets().add("mijnlieff/client/style.css");
+
+    }
+
+    public Parent asParent() {
+        return view;
+    }
+
+    private void doQueue() {
         enqueueButton.getStyleClass().removeAll("invalid");
         enqueued = !enqueued;
         if(enqueued) {
@@ -54,7 +66,7 @@ public class GameEstablisher extends ConnectionListener {
         }
     }
 
-    public void doSelect(ActionEvent actionEvent) {
+    private void doSelect() {
         selectButton.getStyleClass().removeAll("invalid");
         String opponentName = playerList.getSelectionModel().getSelectedItem();
         if(opponentName.equals(connection.getPlayer().getUsername())) return;

@@ -1,29 +1,40 @@
 package mijnlieff.client.viewer;
 
-import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.HBox;
 import mijnlieff.client.Connection;
-import mijnlieff.client.board.Board;
 import mijnlieff.client.board.BoardSetting;
 import mijnlieff.client.game.GameCompanion;
 
-public class ViewerCompanion {
+public class ViewerCompanion extends GameCompanion {
 
-    public Board model;
+    private Button firstMoveButton;
+    private Button prevMoveButton;
+    private Button nextMoveButton;
+    private Button lastMoveButton;
 
-    public void initialize() {
-        model.setBoardSetting(BoardSetting.DEFAULT);
-        model.resetCurrentMove();
+    public ViewerCompanion(Connection connection, BoardSetting boardSetting) {
+        super(connection, boardSetting);
     }
 
-    public Board getModel() {
-        return model;
-    }
+    protected void initialize() {
+        super.initialize();
+        System.out.println("initializing viewer companion");
+        firstMoveButton = new Button("|<");
+        prevMoveButton = new Button("<");
+        nextMoveButton = new Button(">");
+        lastMoveButton = new Button(">|");
 
-    public void setConnection(Connection connection) {
-        model.setConnection(connection);
-    }
+        model.addListener(o -> firstMoveButton.setDisable(model.getCurrentMove() <= 0));
+        model.addListener(o -> prevMoveButton.setDisable(model.getCurrentMove() <= 0));
+        model.addListener(o -> nextMoveButton.setDisable(!model.hasNextMove()));
+        model.addListener(o -> lastMoveButton.setDisable(!model.hasNextMove()));
 
-    public void setScene(Scene scene) {
-        GameCompanion.initializeDecks(scene, model);
+        firstMoveButton.setOnAction(e -> model.resetCurrentMove());
+        prevMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() - 1));
+        nextMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() + 1));
+        lastMoveButton.setOnAction(e -> {while(model.setCurrentMove(model.getCurrentMove() + 1));});
+
+        view.setBottom(new HBox(firstMoveButton, prevMoveButton, nextMoveButton, lastMoveButton));
     }
 }
