@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 /**
  * Model of the board
  */
-
 public class Board extends ConnectionListener implements Observable {
 
     private ArrayList<Move> moves;
