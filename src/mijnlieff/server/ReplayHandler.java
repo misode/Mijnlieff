@@ -26,8 +26,8 @@ public class ReplayHandler implements Runnable {
             Queue<String> replies = getReplies();
             String messageFromClient;
             int nextReply = 0;
-            while(!replies.isEmpty() && (messageFromClient = in.readLine()) != null) {
-                if(!"X".equals(messageFromClient)) {
+            while (!replies.isEmpty() && (messageFromClient = in.readLine()) != null) {
+                if (!"X".equals(messageFromClient)) {
                     /* invalid request from client: send error as last reply */
                     out.println("?");
                     replies.clear();
@@ -35,7 +35,7 @@ public class ReplayHandler implements Runnable {
                     out.println(replies.poll());
                 }
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             /* Opnieuw niet veel dat we kunnen doen, behalve deze connectie
              * afsluiten en de error tonen. */
             e.printStackTrace();

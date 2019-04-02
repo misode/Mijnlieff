@@ -24,15 +24,15 @@ public class Server {
     }
 
     public void listen() {
-        if(pool.isShutdown()) return;
+        if (pool.isShutdown()) return;
         pool.execute(handler);
         System.err.println("Starting to listen for connections...");
         try(ServerSocket serverSocket = new ServerSocket(portNumber)) {
-            for(;;) {
+            for (;;) {
                 Socket clientSocket = serverSocket.accept();
                 pool.execute(() -> handle(clientSocket));
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.err.println("Stopped listening for connections.");
@@ -51,10 +51,10 @@ public class Server {
         ) {
             pool.execute(writer);
             String inputLine;
-            while(client.isConnected() && (inputLine = in.readLine()) != null) {
-                if(client.isConnected()) handler.handle(client, inputLine);
+            while (client.isConnected() && (inputLine = in.readLine()) != null) {
+                if (client.isConnected()) handler.handle(client, inputLine);
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.err.println("Closed connection to " + remote);

@@ -42,19 +42,19 @@ public class GameCompanion {
     }
 
     public void selectDeckTile(MouseEvent e) {
-        if(!model.isOnTurn()) return;
+        if (!model.isOnTurn()) return;
 
         selectedDeckTile = (ImageView)e.getSource();
     }
 
     public void selectBoardTile(MouseEvent e) {
-        if(!model.isOnTurn()) return;
-        if(selectedDeckTile == null) return;
+        if (!model.isOnTurn()) return;
+        if (selectedDeckTile == null) return;
 
         ImageView selectedBoardTile = (ImageView)e.getSource();
 
-        for(Tile t : model.getDeck(model.getPlayer().getColor()).getTiles()) {
-            if(t.getImage().equals(selectedDeckTile.getImage())) {
+        for (Tile t : model.getDeck(model.getPlayer().getColor()).getTiles()) {
+            if (t.getImage().equals(selectedDeckTile.getImage())) {
                 int x = GridPane.getColumnIndex(selectedBoardTile);
                 int y = GridPane.getRowIndex(selectedBoardTile);
                 model.transferTile(t, x, y);

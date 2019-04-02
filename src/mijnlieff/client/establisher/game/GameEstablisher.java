@@ -57,7 +57,7 @@ public class GameEstablisher extends ConnectionListener {
     private void doQueue() {
         enqueueButton.getStyleClass().removeAll("invalid");
         enqueued = !enqueued;
-        if(enqueued) {
+        if (enqueued) {
             connection.enqueue();
             enqueueButton.setText("Dequeue");
         } else {
@@ -69,7 +69,7 @@ public class GameEstablisher extends ConnectionListener {
     private void doSelect() {
         selectButton.getStyleClass().removeAll("invalid");
         String opponentName = playerList.getSelectionModel().getSelectedItem();
-        if(opponentName.equals(connection.getPlayer().getUsername())) return;
+        if (opponentName.equals(connection.getPlayer().getUsername())) return;
         connection.selectOpponent(opponentName);
     }
 
@@ -91,7 +91,7 @@ public class GameEstablisher extends ConnectionListener {
 
         public void updateItem(String name, boolean empty) {
             super.updateItem(name, empty);
-            if(empty) {
+            if (empty) {
                 setText(null);
             } else {
                 setText(name);

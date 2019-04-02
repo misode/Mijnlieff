@@ -32,7 +32,7 @@ public class ViewerCompanion extends GameCompanion {
         firstMoveButton.setOnAction(e -> model.resetCurrentMove());
         prevMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() - 1));
         nextMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() + 1));
-        lastMoveButton.setOnAction(e -> {while(model.hasNextMove()) {model.setCurrentMove(model.getCurrentMove() + 1);}});
+        lastMoveButton.setOnAction(e -> {while (model.hasNextMove()) {model.setCurrentMove(model.getCurrentMove() + 1);}});
 
         view.setBottom(new HBox(firstMoveButton, prevMoveButton, nextMoveButton, lastMoveButton));
     }

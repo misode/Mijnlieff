@@ -31,9 +31,9 @@ public class BoardPane extends GridPane implements InvalidationListener {
     }
 
     private void initialize() {
-        for(int i = 0; i < model.getWidth(); i++) {
-            for(int j = 0; j < model.getHeight(); j++) {
-                if(model.hasCell(i, j)) {
+        for (int i = 0; i < model.getWidth(); i++) {
+            for (int j = 0; j < model.getHeight(); j++) {
+                if (model.hasCell(i, j)) {
                     ImageView image = new ImageView(emptyCell);
                     image.getStyleClass().add("board-cell");
                     image.setFitHeight(100);
@@ -50,18 +50,18 @@ public class BoardPane extends GridPane implements InvalidationListener {
 
     @Override
     public void invalidated(Observable observable) {
-        if(getChildren().size() == 0) {
+        if (getChildren().size() == 0) {
             initialize();
         }
-        for(Node n : getChildren()) {
+        for (Node n : getChildren()) {
             int x = GridPane.getColumnIndex(n);
             int y = GridPane.getRowIndex(n);
-            if(model.hasCell(x, y)) {
+            if (model.hasCell(x, y)) {
                 Tile tile = model.getTile(x, y);
                 ImageView cell = (ImageView) n;
-                if(tile == null) {
+                if (tile == null) {
                     cell.setImage(emptyCell);
-                    if(controller != null) {
+                    if (controller != null) {
                         cell.setOnMouseClicked(controller::selectBoardTile);
                     }
                 } else {

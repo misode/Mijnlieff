@@ -16,8 +16,8 @@ public class ReplayServer {
     public void listen() {
         ExecutorService pool = Executors.newCachedThreadPool();
         try(ServerSocket serverSocket = new ServerSocket(portNumber)) {
-            for(;;) pool.execute(new ReplayHandler(serverSocket.accept()));
-        } catch(IOException e) {
+            for (;;) pool.execute(new ReplayHandler(serverSocket.accept()));
+        } catch (IOException e) {
             /* Als het openen van sockets faalt, kunnen we toch niets nuttig
              * doen. We printen gewoon de foutboodschap helemaal af om
              * zoveel mogelijk informatie te geven over de fout. */

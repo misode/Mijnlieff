@@ -24,9 +24,9 @@ public class DeckPane extends VBox implements InvalidationListener {
     @Override
     public void invalidated(Observable observable) {
         getChildren().clear();
-        for(Tile t : model.getTiles()) {
+        for (Tile t : model.getTiles()) {
             ImageView image = new ImageView(t.getImage());
-            if(controller != null) {
+            if (controller != null) {
                 image.setOnMouseClicked(controller::selectDeckTile);
             }
             image.getStyleClass().add("deck-image");

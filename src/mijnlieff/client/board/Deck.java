@@ -29,16 +29,16 @@ public class Deck implements Observable, InvalidationListener {
 
     private void fillDeck() {
         tiles = new ArrayList<>();
-        for(Tile.Type t : Tile.Type.values()) {
-            for(int i = 0; i < 2; i++) {
+        for (Tile.Type t : Tile.Type.values()) {
+            for (int i = 0; i < 2; i++) {
                 tiles.add(new Tile(player, t));
             }
         }
     }
 
     public void removeOneFromDeck(Tile t) {
-        for(int i = tiles.size() - 1; i >= 0; i--) {
-            if(t.equals(tiles.get(i))) {
+        for (int i = tiles.size() - 1; i >= 0; i--) {
+            if (t.equals(tiles.get(i))) {
                 tiles.remove(i);
                 return;
             }
@@ -70,7 +70,7 @@ public class Deck implements Observable, InvalidationListener {
     @Override
     public void invalidated(Observable observable) {
         fillDeck();
-        for(Move m : board.getMoves()) {
+        for (Move m : board.getMoves()) {
             removeOneFromDeck(m.getTile());
         }
         fireInvalidationEvent();

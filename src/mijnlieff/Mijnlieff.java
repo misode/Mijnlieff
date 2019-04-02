@@ -46,9 +46,9 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     public void init() {
         List<String> argList = getParameters().getRaw();
 
-        if(argList.size() == 0) {
+        if (argList.size() == 0) {
             mode = Mode.GAME;
-        } else if(argList.size() == 2 || argList.size() == 3) {
+        } else if (argList.size() == 2 || argList.size() == 3) {
             mode = Mode.VIEWER;
             hostName = argList.get(0);
             portNumber = Integer.parseInt(argList.get(1));
@@ -64,9 +64,9 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         this.stage = stage;
         stage.setTitle("Mijnlieff");
 
-        if(mode == Mode.GAME) initializeGame();
-        if(mode == Mode.VIEWER || mode == Mode.VIEWER_TEST) initializeViewer();
-        if(mode == Mode.INVALID) Platform.exit();
+        if (mode == Mode.GAME) initializeGame();
+        if (mode == Mode.VIEWER || mode == Mode.VIEWER_TEST) initializeViewer();
+        if (mode == Mode.INVALID) Platform.exit();
 
         stage.show();
     }
@@ -142,9 +142,9 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         Scene scene = new Scene(controller.asParent(), 810, 680);
         stage.setScene(scene);
 
-        if(screenshot != null) {
+        if (screenshot != null) {
             Board board = controller.getModel();
-            while(board.hasNextMove()) {
+            while (board.hasNextMove()) {
                 board.setCurrentMove(board.getCurrentMove() + 1);
             }
 
@@ -166,7 +166,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
      */
     @Override
     public void stop() throws IOException {
-        if(connection != null) {
+        if (connection != null) {
             connection.stop();
         }
     }

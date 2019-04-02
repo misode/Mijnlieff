@@ -42,12 +42,12 @@ public class Board extends ConnectionListener implements Observable {
         // In the viewer mode the player's color will be null meaning onTurn will stay false
         onTurn = connection.getPlayer().getColor() == Player.Color.WHITE;
 
-        for(int i = 0; i < 4; i++) {
-            if(boardSetting.getX(i) + 2 > width) width = boardSetting.getX(i) + 2;
-            if(boardSetting.getY(i) + 2 > height) height = boardSetting.getY(i) + 2;
+        for (int i = 0; i < 4; i++) {
+            if (boardSetting.getX(i) + 2 > width) width = boardSetting.getX(i) + 2;
+            if (boardSetting.getY(i) + 2 > height) height = boardSetting.getY(i) + 2;
         }
         cells = new boolean[width][height];
-        for(int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             int x = boardSetting.getX(i);
             int y = boardSetting.getY(i);
             cells[x][y] = true;
@@ -58,7 +58,7 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     public Deck getDeck(Player.Color playerColor) {
-        if(playerColor == Player.Color.WHITE) return whiteDeck;
+        if (playerColor == Player.Color.WHITE) return whiteDeck;
         else return blackDeck;
     }
 
@@ -67,27 +67,25 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     public void receivedMove(String response) {
-        System.out.println("Recieved response!");
         Move move = decodeMove(connection.getPlayer().getColor().next(), response);
         moves.add(move);
         onTurn = true;
         currentMove += 1;
-        System.out.println("Added move " + move);
         fireInvalidationEvent();
     }
 
     private boolean requestMove() {
         Player.Color player = Player.Color.WHITE;
-        if(moves.size() > 0) {
+        if (moves.size() > 0) {
             player = moves.get(moves.size() - 1).getTile().getPlayer();
-            if(!wasBlockingMove()) {
+            if (!wasBlockingMove()) {
                 player = player.next();
             }
         }
         try {
             String response = connection.viewNext();
             Move newMove = decodeMove(player, response);
-            if(newMove == null) return false;
+            if (newMove == null) return false;
             moves.add(newMove);
             return true;
         } catch (IOException e) {
@@ -97,7 +95,6 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     public void transferTile(Tile deckTile, int x, int y) {
-        System.out.println("Valid cell? " + isValidCell(x, y));
         if (!isValidCell(x, y)) return;
         addMove(new Move(x, y, deckTile));
         getDeck(connection.getPlayer().getColor()).removeOneFromDeck(deckTile);
@@ -105,7 +102,6 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     private void addMove(Move move) {
-        System.out.println("Adding move " + move);
         moves.add(move);
         connection.sendMove(encodeMove(move));
         onTurn = false;
@@ -114,14 +110,14 @@ public class Board extends ConnectionListener implements Observable {
 
     private Move decodeMove(Player.Color player, String response) {
         String[] msg = response.split(" ");
-        if(msg[1].equals("T")) {
+        if (msg[1].equals("T")) {
             reachedEnd = true;
         }
         // converting rows/columns to x/y
         int moveY = Integer.parseInt(msg[2]);
         int moveX = Integer.parseInt(msg[3]);
         Tile.Type type = Tile.Type.fromChar(msg[4]);
-        if(type == null) {
+        if (type == null) {
             connection.detectException();
             return null;
         }
@@ -138,9 +134,9 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     private boolean wasBlockingMove() {
-        for(int i = 0; i < width; i++) {
-            for(int j = 0; j < height; j++) {
-                if(!isValidCell(i, j)) {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (!isValidCell(i, j)) {
                     return false;
                 }
             }
@@ -149,9 +145,9 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     private boolean isValidCell(int x, int y) {
-        if(moves.size() > 0) {
+        if (moves.size() > 0) {
             Move lastMove = moves.get(moves.size() - 1);
-            if(!lastMove.getTile().getType().isAllowed(x - lastMove.getX(), y - lastMove.getY())) {
+            if (!lastMove.getTile().getType().isAllowed(x - lastMove.getX(), y - lastMove.getY())) {
                 return false;
             }
         }
@@ -163,15 +159,15 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     public void setCurrentMove(int newMove) {
-        if(currentMove == newMove) return;
-        if(newMove > moves.size()) {
-            if(reachedEnd) return;
+        if (currentMove == newMove) return;
+        if (newMove > moves.size()) {
+            if (reachedEnd) return;
             boolean success = requestMove();
-            if(!success) return;
+            if (!success) return;
             currentMove = newMove;
         } else {
             currentMove = newMove;
-            if(currentMove < 0) {
+            if (currentMove < 0) {
                 currentMove = 0;
             }
         }
@@ -191,19 +187,19 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     public void resetCurrentMove() {
-        if(currentMove == 0) return;
+        if (currentMove == 0) return;
         currentMove = 0;
         fireInvalidationEvent();
     }
 
     public boolean hasCell(int x, int y) {
-        if(x < 0 || y < 0 || x >= width || y >= height) return false;
+        if (x < 0 || y < 0 || x >= width || y >= height) return false;
         return cells[x][y];
     }
 
     public Tile getTile(int x, int y) {
-        for(Move m : getMoves()) {
-            if(m.getX() == x && m.getY() == y) {
+        for (Move m : getMoves()) {
+            if (m.getX() == x && m.getY() == y) {
                 return m.getTile();
             }
         }

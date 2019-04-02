@@ -58,10 +58,10 @@ public class Tile {
         }
 
         public static Type fromChar(String str) {
-            if(str.equals("+")) return TOREN;
-            if(str.equals("X")) return LOPER;
-            if(str.equals("@")) return PUSHER;
-            if(str.equals("o")) return PULLER;
+            if (str.equals("+")) return TOREN;
+            if (str.equals("X")) return LOPER;
+            if (str.equals("@")) return PUSHER;
+            if (str.equals("o")) return PULLER;
             return null;
         }
 

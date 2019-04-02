@@ -30,7 +30,7 @@ public class ClientHandler implements Runnable {
 
     public void remove(Client client) {
         client.getState().quit();
-        if(client.getIdentifier() != null) {
+        if (client.getIdentifier() != null) {
             clients.remove(client.getIdentifier());
         }
     }
@@ -38,7 +38,7 @@ public class ClientHandler implements Runnable {
     public void handle(Client client, String line) {
         try {
             queue.put(new Command(client, line));
-        } catch(InterruptedException e) {}
+        } catch (InterruptedException e) {}
     }
 
     private static class Command {
@@ -53,10 +53,10 @@ public class ClientHandler implements Runnable {
     public void run() {
         Command command = null;
         try {
-            while(!stopped && (command = queue.take()) != null) {
+            while (!stopped && (command = queue.take()) != null) {
                 command.client.setState(realHandle(command.client, command.line));
             }
-        } catch(InterruptedException e) {}
+        } catch (InterruptedException e) {}
         stopped = true;
     }
 
@@ -119,13 +119,13 @@ public class ClientHandler implements Runnable {
         }
 
         public State quit() {
-            if(client.getIdentifier() != null) clients.remove(client.getIdentifier());
+            if (client.getIdentifier() != null) clients.remove(client.getIdentifier());
             return new Closed();
         }
 
         public State getQueue() {
-            for(Client other : clients.values()) {
-                if(other.isEnqueued()) {
+            for (Client other : clients.values()) {
+                if (other.isEnqueued()) {
                     client.write("+ " + other.getIdentifier());
                 }
             }
@@ -148,7 +148,7 @@ public class ClientHandler implements Runnable {
         public boolean isEnqueued() { return false; }
 
         protected String substring(String string, int begin) {
-            if(begin > string.length()) {
+            if (begin > string.length()) {
                 return "";
             } else {
                 return string.substring(begin);
@@ -163,7 +163,7 @@ public class ClientHandler implements Runnable {
 
         public State identify(String line) {
             String identifier = substring(line, 2);
-            if(clients.containsKey(identifier)) {
+            if (clients.containsKey(identifier)) {
                 client.write("-");
                 return this;
             } else {
@@ -189,7 +189,7 @@ public class ClientHandler implements Runnable {
 
         public State forward(String input) {
             client.write(movesLeft.poll());
-            if(movesLeft.isEmpty()) {
+            if (movesLeft.isEmpty()) {
                 return quit();
             } else {
                 return this;
@@ -209,11 +209,11 @@ public class ClientHandler implements Runnable {
         public State choose(String line) {
             String identifier = substring(line, 2);
             Client other = clients.get(identifier);
-            if(other == null || !other.isEnqueued()) {
+            if (other == null || !other.isEnqueued()) {
                 client.write("-");
                 return this;
             } else {
-                if(RG.nextBoolean()) {
+                if (RG.nextBoolean()) {
                     client.write("+ T " + other.getIdentifier());
                     other.write("+ F " + client.getIdentifier());
                     other.setState(new NotTurn(other, client));

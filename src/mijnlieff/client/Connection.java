@@ -79,7 +79,7 @@ public class Connection{
      * Requests the player list from the server.
      */
     private void requestPlayerList() {
-        if(state != WaitingState.IDLE) return;
+        if (state != WaitingState.IDLE) return;
 
         out.println("W");
         state = WaitingState.PLAYERLIST;
@@ -89,7 +89,7 @@ public class Connection{
      * Marks the player on the global player list, available for any opponent to start a game.
      */
     public void enqueue() {
-        if(state != WaitingState.IDLE) return;
+        if (state != WaitingState.IDLE) return;
 
         out.println("P");
         state = WaitingState.IDLE;
@@ -100,7 +100,7 @@ public class Connection{
      * Removes the player from the global player list.
      */
     public void dequeue() {
-        if(state != WaitingState.IDLE) return;
+        if (state != WaitingState.IDLE) return;
 
         out.println("R");
         state = WaitingState.DEQUEUED;
@@ -111,21 +111,20 @@ public class Connection{
      * @param opponentName the name of the opponent that is used to start the game.
      */
     public void selectOpponent(String opponentName) {
-        if(state != WaitingState.IDLE) return;
+        if (state != WaitingState.IDLE) return;
 
         // Make sure the player is dequeued before we try to select an opponent
-        if(enqueued) dequeue();
+        if (enqueued) dequeue();
 
         out.println("C "+opponentName);
         state = WaitingState.OPPONENT;
     }
 
     public void sendBoard(BoardSetting boardSetting) {
-        if(state != WaitingState.IDLE) return;
+        if (state != WaitingState.IDLE) return;
 
         out.println("X " + boardSetting.toString());
         state = WaitingState.GAME;
-        System.out.println("I'm not in gaming mode xD");
     }
 
     public void sendMove(String encodedMove) {
@@ -141,10 +140,9 @@ public class Connection{
      * Marks the state to wait for the opponent to choose a board.
      */
     public void waitForBoard() {
-        if(state != WaitingState.IDLE) return;
+        if (state != WaitingState.IDLE) return;
 
         state = WaitingState.BOARD;
-        System.out.println("I'm not in gaming mode xD");
     }
 
     /**
@@ -155,20 +153,20 @@ public class Connection{
         try {
             String response;
             while ((response = in.readLine()) != null) {
-                if(response.equals("Q")) {
+                if (response.equals("Q")) {
                     System.err.println("Server or opponent decided to close the connection...");
                     Platform.exit();
-                } else if(state == WaitingState.IDLE) {
-                    if(enqueued) {
+                } else if (state == WaitingState.IDLE) {
+                    if (enqueued) {
                         initializeGame(response);
                     }
 
-                } else if(state == WaitingState.IDENTIFY) {
+                } else if (state == WaitingState.IDENTIFY) {
                     boolean success = response.equals("+");
                     Platform.runLater(() -> listener.identified(success));
                     state = WaitingState.IDLE;
 
-                } else if(state == WaitingState.PLAYERLIST) {
+                } else if (state == WaitingState.PLAYERLIST) {
                     ArrayList<String> playerNames = new ArrayList<>();
                     while (response.startsWith("+") && response.length() > 2) {
                         playerNames.add(response.substring(2));
@@ -177,9 +175,9 @@ public class Connection{
                     Platform.runLater(() -> listener.updatePlayerList(playerNames));
                     state = WaitingState.IDLE;
 
-                } else if(state == WaitingState.OPPONENT) {
-                    if(response.startsWith("+")) {
-                        if(response.length() == 1) {
+                } else if (state == WaitingState.OPPONENT) {
+                    if (response.startsWith("+")) {
+                        if (response.length() == 1) {
                             // This response comes because we first dequeued ourselves
                             // Don't change the state, but skip ahead
                             enqueued = false;
@@ -188,19 +186,18 @@ public class Connection{
                         }
                     }
 
-                } else if(state == WaitingState.DEQUEUED) {
+                } else if (state == WaitingState.DEQUEUED) {
                     boolean success = response.equals("+");
                     state = WaitingState.IDLE;
                     enqueued = !success;
 
-                } else if(state == WaitingState.BOARD) {
+                } else if (state == WaitingState.BOARD) {
                     BoardSetting boardSetting = new BoardSetting(response.substring(2));
                     Platform.runLater(() -> listener.boardEstablished(boardSetting));
                     state = WaitingState.GAME;
 
-                } else if(state == WaitingState.GAME) {
-                    System.out.println("Got a response: " + response);
-                    if(response.length() == 9 ) {
+                } else if (state == WaitingState.GAME) {
+                    if (response.length() == 9 ) {
                         String finalResponse = response;
                         Platform.runLater(() -> listener.receivedMove(finalResponse));
                     }

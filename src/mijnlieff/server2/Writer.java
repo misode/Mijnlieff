@@ -19,10 +19,10 @@ public class Writer implements Runnable, AutoCloseable {
     public void run() {
         String message = null;
         try {
-            while(!stopped && (message = queue.take()) != null) {
-                if(!stopped) writer.println(message);
+            while (!stopped && (message = queue.take()) != null) {
+                if (!stopped) writer.println(message);
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
             /* code falls through to "stopped" should we be interrupted */
         }
         stopped = true;
@@ -30,17 +30,17 @@ public class Writer implements Runnable, AutoCloseable {
 
     public void write(String... messages) {
         try {
-            for(String message : messages) {
+            for (String message : messages) {
                 queue.put(message);
             }
-        } catch(InterruptedException e) {}
+        } catch (InterruptedException e) {}
     }
 
     public void close() {
         stopped = true;
         try {
             queue.put(""); // anything to unblock
-        } catch(InterruptedException e) {}
+        } catch (InterruptedException e) {}
     }
 
 }
