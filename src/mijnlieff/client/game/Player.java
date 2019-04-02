@@ -49,5 +49,9 @@ public class Player {
         public Color next() {
             return next;
         }
+
+        public String toString() {
+            return name;
+        }
     }
 }

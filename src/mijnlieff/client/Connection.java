@@ -21,18 +21,11 @@ public class Connection{
     private BufferedReader in;
 
     private Player player;
-
-    // State
     private WaitingState state;
     private boolean enqueued;
 
     private Timeline playerRefresher;
-
     private ConnectionListener listener;
-
-    public Connection() {
-
-    }
 
     /**
      * Starts the connection with the specified hostName and portNumber.
@@ -87,7 +80,6 @@ public class Connection{
      */
     private void requestPlayerList() {
         if(state != WaitingState.IDLE) return;
-        System.out.println("requesting player list");
 
         out.println("W");
         state = WaitingState.PLAYERLIST;
@@ -98,6 +90,7 @@ public class Connection{
      */
     public void enqueue() {
         if(state != WaitingState.IDLE) return;
+
         out.println("P");
         state = WaitingState.IDLE;
         enqueued = true;
@@ -129,9 +122,10 @@ public class Connection{
 
     public void sendBoard(BoardSetting boardSetting) {
         if(state != WaitingState.IDLE) return;
+
         out.println("X " + boardSetting.toString());
         state = WaitingState.GAME;
-
+        System.out.println("I'm not in gaming mode xD");
     }
 
     public void sendMove(String encodedMove) {
@@ -144,12 +138,13 @@ public class Connection{
     }
 
     /**
-     * Marks the stage to wait for the opponent to choose a board.
+     * Marks the state to wait for the opponent to choose a board.
      */
     public void waitForBoard() {
-        if(state == WaitingState.IDLE) {
-            state = WaitingState.BOARD;
-        }
+        if(state != WaitingState.IDLE) return;
+
+        state = WaitingState.BOARD;
+        System.out.println("I'm not in gaming mode xD");
     }
 
     /**
@@ -161,7 +156,7 @@ public class Connection{
             String response;
             while ((response = in.readLine()) != null) {
                 if(response.equals("Q")) {
-                    System.err.println("Closed connection");
+                    System.err.println("Server or opponent decided to close the connection...");
                     Platform.exit();
                 } else if(state == WaitingState.IDLE) {
                     if(enqueued) {
@@ -204,13 +199,16 @@ public class Connection{
                     state = WaitingState.GAME;
 
                 } else if(state == WaitingState.GAME) {
+                    System.out.println("Got a response: " + response);
                     if(response.length() == 9 ) {
-                        listener.receivedMove(response);
+                        String finalResponse = response;
+                        Platform.runLater(() -> listener.receivedMove(finalResponse));
                     }
                 }
             }
         } catch (IOException e) {
             System.err.println("Closed connection");
+            Platform.exit();
         }
     }
 
@@ -230,7 +228,7 @@ public class Connection{
     }
 
     /**
-     * Shuts the game and connection down.
+     * Shuts down the game and the connection.
      * Used when the server or opponent sent a malicious response.
      */
     public void detectException() {
@@ -240,8 +238,9 @@ public class Connection{
             stop();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            Platform.exit();
         }
-        Platform.exit();
     }
 
     public void stop() throws IOException {
@@ -249,8 +248,6 @@ public class Connection{
             out.println("Q");
         } finally {
             socket.close();
-            out.close();
-            in.close();
         }
     }
 

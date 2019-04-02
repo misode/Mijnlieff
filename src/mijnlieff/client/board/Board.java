@@ -29,6 +29,7 @@ public class Board extends ConnectionListener implements Observable {
 
     public Board(Connection connection, BoardSetting boardSetting) {
         super(connection);
+
         moves = new ArrayList<>();
         width = 0;
         height = 0;
@@ -56,11 +57,6 @@ public class Board extends ConnectionListener implements Observable {
         }
     }
 
-    public void receivedMove(String response) {
-        Move move = decodeMove(connection.getPlayer().getColor(), response);
-        moves.add(move);
-    }
-
     public Deck getDeck(Player.Color playerColor) {
         if(playerColor == Player.Color.WHITE) return whiteDeck;
         else return blackDeck;
@@ -68,6 +64,16 @@ public class Board extends ConnectionListener implements Observable {
 
     public Player getPlayer() {
         return connection.getPlayer();
+    }
+
+    public void receivedMove(String response) {
+        System.out.println("Recieved response!");
+        Move move = decodeMove(connection.getPlayer().getColor().next(), response);
+        moves.add(move);
+        onTurn = true;
+        currentMove += 1;
+        System.out.println("Added move " + move);
+        fireInvalidationEvent();
     }
 
     private boolean requestMove() {
@@ -91,14 +97,19 @@ public class Board extends ConnectionListener implements Observable {
     }
 
     public void transferTile(Tile deckTile, int x, int y) {
+        System.out.println("Valid cell? " + isValidCell(x, y));
         if (!isValidCell(x, y)) return;
-        sendMove(new Move(x, y, deckTile));
+        addMove(new Move(x, y, deckTile));
         getDeck(connection.getPlayer().getColor()).removeOneFromDeck(deckTile);
         fireInvalidationEvent();
     }
 
-    private void sendMove(Move move) {
+    private void addMove(Move move) {
+        System.out.println("Adding move " + move);
+        moves.add(move);
         connection.sendMove(encodeMove(move));
+        onTurn = false;
+        currentMove += 1;
     }
 
     private Move decodeMove(Player.Color player, String response) {
@@ -144,19 +155,19 @@ public class Board extends ConnectionListener implements Observable {
                 return false;
             }
         }
-        return !(hasCell(x, y) && getTile(x, y) == null);
+        return hasCell(x, y) && getTile(x, y) == null;
     }
 
     public boolean isOnTurn() {
         return onTurn;
     }
 
-    public boolean setCurrentMove(int newMove) {
-        if(currentMove == newMove) return false;
+    public void setCurrentMove(int newMove) {
+        if(currentMove == newMove) return;
         if(newMove > moves.size()) {
-            if(reachedEnd) return false;
+            if(reachedEnd) return;
             boolean success = requestMove();
-            if(!success) return false;
+            if(!success) return;
             currentMove = newMove;
         } else {
             currentMove = newMove;
@@ -165,7 +176,6 @@ public class Board extends ConnectionListener implements Observable {
             }
         }
         fireInvalidationEvent();
-        return true;
     }
 
     public int getCurrentMove() {

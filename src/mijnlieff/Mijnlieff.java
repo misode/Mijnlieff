@@ -3,7 +3,6 @@ package mijnlieff;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
@@ -18,7 +17,7 @@ import mijnlieff.client.game.GameCompanion;
 import mijnlieff.client.establisher.game.GameEstablishedListener;
 import mijnlieff.client.establisher.game.GameEstablisher;
 import mijnlieff.client.game.Player;
-import mijnlieff.client.viewer.ViewerCompanion;
+import mijnlieff.client.game.ViewerCompanion;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -90,7 +89,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     public void establishedConnection(Connection connection){
         this.connection = connection;
         GameEstablisher controller = new GameEstablisher(connection, this);
-        Scene scene = new Scene(controller.asParent(), 350, 500);
+        Scene scene = new Scene(controller.asParent(), 350, 450);
         double centerX = stage.getX() + stage.getWidth()/2;
         stage.setX(centerX - scene.getWidth()/2);
         stage.setScene(scene);
@@ -145,7 +144,9 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
 
         if(screenshot != null) {
             Board board = controller.getModel();
-            while(board.setCurrentMove(board.getCurrentMove() + 1));
+            while(board.hasNextMove()) {
+                board.setCurrentMove(board.getCurrentMove() + 1);
+            }
 
             try {
                 WritableImage snapshot = scene.snapshot(new WritableImage((int)scene.getWidth(), (int)scene.getHeight()));

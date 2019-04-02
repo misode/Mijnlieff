@@ -1,10 +1,9 @@
-package mijnlieff.client.viewer;
+package mijnlieff.client.game;
 
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import mijnlieff.client.Connection;
 import mijnlieff.client.board.BoardSetting;
-import mijnlieff.client.game.GameCompanion;
 
 public class ViewerCompanion extends GameCompanion {
 
@@ -33,7 +32,7 @@ public class ViewerCompanion extends GameCompanion {
         firstMoveButton.setOnAction(e -> model.resetCurrentMove());
         prevMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() - 1));
         nextMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() + 1));
-        lastMoveButton.setOnAction(e -> {while(model.setCurrentMove(model.getCurrentMove() + 1));});
+        lastMoveButton.setOnAction(e -> {while(model.hasNextMove()) {model.setCurrentMove(model.getCurrentMove() + 1);}});
 
         view.setBottom(new HBox(firstMoveButton, prevMoveButton, nextMoveButton, lastMoveButton));
     }
