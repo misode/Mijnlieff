@@ -18,7 +18,6 @@ public class ViewerCompanion extends GameCompanion {
 
     protected void initialize() {
         super.initialize();
-        System.out.println("initializing viewer companion");
         firstMoveButton = new Button("|<");
         prevMoveButton = new Button("<");
         nextMoveButton = new Button(">");

@@ -33,7 +33,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     private String screenshot;
     private Connection connection;
     private Stage stage;
-    private Mode mode = Mode.INVALID;
+    private Mode mode;
 
     private enum Mode {
         GAME,
@@ -46,6 +46,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     public void init() {
         List<String> argList = getParameters().getRaw();
 
+        mode = Mode.INVALID;
         if (argList.size() == 0) {
             mode = Mode.GAME;
         } else if (argList.size() == 2 || argList.size() == 3) {

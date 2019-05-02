@@ -14,73 +14,64 @@ TextField.invalid {
     -fx-border-color: red;
 }
 
-.board-empty {
-    -fx-opacity: 0;
-}
-
-.board-pane {
+BoardPane {
     -fx-pref-width: 200;
     -fx-hgap: 3;
     -fx-vgap: 3;
 }
-.deck-pane {
+DeckPane {
     -fx-spacing: 3;
 }
 
-.deck-pane .cell {
-    -fx-pref-width: 75;
-    -fx-pref-height: 75;
-}
-
-.cell {
+TilePane {
     -fx-background-size: cover;
     -fx-background-radius: 5;
     -fx-border-radius: 5;
     -fx-border-width: 3;
 }
 
-.deck-pane .cell.selected {
+DeckPane TilePane.selected {
     -fx-border-color: red;
 }
 
-.deck-pane .cell.clickeable:hover {
+DeckPane TilePane.clickeable:hover {
     -fx-border-color: orange;
 }
 
-.cell.clickeable {
+TilePane.clickeable {
     -fx-cursor: hand;
 }
-.cell.empty {
+TilePane.empty {
     -fx-background-color: #dcdcdc;
     -fx-border-width: 2;
     -fx-border-color: #2e2e2e;
 }
-.cell.empty.valid {
+TilePane.empty.valid {
     -fx-background-color: #7db37e;
     -fx-border-width: 2;
     -fx-border-color: #043b00;
 }
-.cell.white.pusher {
+TilePane.white.pusher {
     -fx-background-image: url("img/white-pusher.png");
 }
-.cell.white.puller {
+TilePane.white.puller {
     -fx-background-image: url("img/white-puller.png");
 }
-.cell.white.loper {
+TilePane.white.loper {
     -fx-background-image: url("img/white-loper.png");
 }
-.cell.white.toren {
+TilePane.white.toren {
     -fx-background-image: url("img/white-toren.png");
 }
-.cell.black.pusher {
+TilePane.black.pusher {
     -fx-background-image: url("img/black-pusher.png");
 }
-.cell.black.puller {
+TilePane.black.puller {
     -fx-background-image: url("img/black-puller.png");
 }
-.cell.black.loper {
+TilePane.black.loper {
     -fx-background-image: url("img/black-loper.png");
 }
-.cell.black.toren {
+TilePane.black.toren {
     -fx-background-image: url("img/black-toren.png");
 }

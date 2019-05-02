@@ -13,30 +13,28 @@ import mijnlieff.client.game.GameCompanion;
  */
 public class BoardPane extends GridPane implements InvalidationListener {
 
-    private Board model;
+    private Board board;
     private GameCompanion controller;
 
-    public BoardPane(Board model, GameCompanion controller) {
-        this.model = model;
+    public BoardPane(Board board, GameCompanion controller) {
+        this.board = board;
         this.controller = controller;
-        model.addListener(this);
+        board.addListener(this);
 
-        getStyleClass().add("board-pane");
         setAlignment(Pos.CENTER);
     }
 
     private void initialize() {
-        int size = 500 / Math.max(model.getWidth(), model.getHeight());
-        System.out.println("Size: " + size);
-        for (int i = 0; i < model.getWidth(); i++) {
-            for (int j = 0; j < model.getHeight(); j++) {
-                if (model.hasCell(i, j)) {
-                    TilePane tilePane = new TilePane(null, controller::selectBoardTile);
-                    tilePane.setPrefSize(size, size);
+        double size = 500.0 / Math.max(board.getWidth(), board.getHeight());
+        for (int i = 0; i < board.getWidth(); i++) {
+            for (int j = 0; j < board.getHeight(); j++) {
+                if (board.hasCell(i, j)) {
+                    TilePane tilePane = new TilePane(size, size);
+                    tilePane.setOnMouseClicked(controller::selectBoardTile);
                     add(tilePane, i, j);
                 } else {
                     Rectangle rectangle = new Rectangle(size, size);
-                    rectangle.getStyleClass().add("board-empty");
+                    rectangle.setOpacity(0);
                     add(rectangle, i, j);
                 }
             }
@@ -51,12 +49,12 @@ public class BoardPane extends GridPane implements InvalidationListener {
         for (Node n : getChildren()) {
             int x = GridPane.getColumnIndex(n);
             int y = GridPane.getRowIndex(n);
-            if (model.hasCell(x, y)) {
-                Tile tile = model.getTile(x, y);
-                TilePane cell = (TilePane) n;
-                cell.setTile(tile);
-                cell.setValid(model.isValidCell(x, y));
-                cell.setClickeable(model.isValidCell(x, y) && model.isOnTurn());
+            if (board.hasCell(x, y)) {
+                Tile tile = board.getTile(x, y);
+                TilePane tilePane = (TilePane) n;
+                tilePane.setTile(tile);
+                tilePane.setValid(board.isValid(x, y));
+                tilePane.setClickeable(board.isValid(x, y) && board.isOnTurn());
             }
         }
     }

@@ -1,5 +1,7 @@
 package mijnlieff.client.board;
 
+import mijnlieff.client.game.Player;
+
 public class Move {
 
     private int x, y;
@@ -25,5 +27,23 @@ public class Move {
 
     public String toString() {
         return tile.toString() + "(" + x + ", " + y + ")";
+    }
+
+    public String encode() {
+        String message = "F";
+        message += " " + getY();
+        message += " " + getX();
+        message += " " + getTile().getType().getChar();
+        return message;
+    }
+
+    public static Move decode(Player.Color playerColor, String string) {
+        String[] msg = string.split(" ");
+        // converting rows/columns to x/y
+        int moveY = Integer.parseInt(msg[1]);
+        int moveX = Integer.parseInt(msg[2]);
+        Tile.Type type = Tile.Type.fromChar(msg[3]);
+        Tile newTile = new Tile(playerColor, type);
+        return new Move(moveX, moveY, newTile);
     }
 }

@@ -1,25 +1,18 @@
 package mijnlieff.client.board;
 
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 public class TilePane extends Pane {
 
-    private Tile tile;
-
-    public TilePane(Tile tile, EventHandler<MouseEvent> mouseEventHandler) {
-        setTile(tile);
-        setOnMouseClicked(mouseEventHandler);
-        getStyleClass().add("cell");
+    public TilePane(double width, double height) {
+        setPrefSize(width, height);
     }
 
     public void setTile(Tile tile) {
-        this.tile = tile;
-        if(tile == null) {
-            getStyleClass().setAll("cell", "empty");
+        getStyleClass().clear();
+        if (tile == null) {
+            getStyleClass().add("empty");
         } else {
-            getStyleClass().remove("empty");
             getStyleClass().add(tile.getType().getName());
             getStyleClass().add(tile.getPlayer().getName());
         }
@@ -47,9 +40,5 @@ public class TilePane extends Pane {
         } else {
             getStyleClass().remove("clickeable");
         }
-    }
-
-    public Tile getTile() {
-        return tile;
     }
 }

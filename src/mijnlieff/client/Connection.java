@@ -41,7 +41,6 @@ public class Connection{
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
         player = new Player("Viewer", null);
-        opponent = new Player("Opponent", null);
         enqueued = false;
     }
 
@@ -90,10 +89,8 @@ public class Connection{
         try {
             ArrayList<String> playerNames = new ArrayList<>();
             String response = in.readLine();
-            while (!response.equals("+")) {
-                if (response.length() >= 4 && response.substring(3, 4).equals(" ")) {
-                    initializeGame(response);
-                } else {
+            while (!response.equals("+") && !response.equals("?")) {
+                if (!checkOpponent(response)){
                     playerNames.add(response.substring(2));
                 }
                 response = in.readLine();
@@ -119,6 +116,8 @@ public class Connection{
         out.println("R");
         try {
             String response = in.readLine();
+            if(checkOpponent(response)) return;
+
             enqueued = !response.equals("+");
         } catch (IOException e) {
             e.printStackTrace();
@@ -136,8 +135,8 @@ public class Connection{
         out.println("C "+opponentName);
         try {
             String response = in.readLine();
-            if(response.length() >= 4 && response.substring(3, 4).equals(" ")) {
-                initializeGame(response);
+            if(!checkOpponent(response)) {
+                enqueue();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -160,6 +159,14 @@ public class Connection{
             e.printStackTrace();
         }
         return null;
+    }
+
+    private boolean checkOpponent(String response) {
+        if(response.length() >= 4 && response.substring(3, 4).equals(" ")) {
+            initializeGame(response);
+            return true;
+        }
+        return false;
     }
 
     /**

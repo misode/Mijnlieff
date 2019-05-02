@@ -8,27 +8,27 @@ import mijnlieff.client.game.GameCompanion;
 
 public class DeckPane extends VBox implements InvalidationListener {
 
-    private Deck model;
+    private Deck deck;
     private GameCompanion controller;
 
-    public DeckPane(Deck model, GameCompanion controller) {
-        this.model = model;
+    public DeckPane(Deck deck, GameCompanion controller) {
+        this.deck = deck;
         this.controller = controller;
-        model.addListener(this);
+        deck.addListener(this);
 
-        getStyleClass().add("deck-pane");
         setAlignment(Pos.CENTER);
     }
 
     @Override
     public void invalidated(Observable observable) {
         getChildren().clear();
-        for (int i = 0; i < model.getTiles().size(); i += 1) {
-            Tile t = model.getTiles().get(i);
-            TilePane tilePane = new TilePane(t, e ->
-                    controller.selectDeckTile(model.getPlayerColor(), getChildrenUnmodifiable().indexOf((TilePane)e.getSource())));
-            tilePane.setSelected(model.getSelectedTile() == i);
-            tilePane.setClickeable(model.getBoard().isOnTurn() && model.getPlayerColor() == model.getBoard().getPlayer().getColor());
+        for (int i = 0; i < deck.getTiles().size(); i += 1) {
+            TilePane tilePane = new TilePane(75, 75);
+            tilePane.setTile(deck.getTiles().get(i));
+            tilePane.setOnMouseClicked(e ->
+                    controller.selectDeckTile(deck, getChildrenUnmodifiable().indexOf((TilePane)e.getSource())));
+            tilePane.setSelected(deck.getSelectedTile() == i);
+            tilePane.setClickeable(deck.getBoard().isOnTurn() && deck.getPlayerColor() == deck.getBoard().getPlayer().getColor());
             getChildren().add(tilePane);
         }
     }

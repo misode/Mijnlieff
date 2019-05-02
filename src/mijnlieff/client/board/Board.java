@@ -18,9 +18,11 @@ public class Board extends ConnectionListener implements Observable {
     private ArrayList<Move> moves;
     private int width, height;
     private boolean[][] cells;
+    private boolean[][] valid;
     private int currentMove;
     private boolean reachedEnd;
     private boolean onTurn;
+    private boolean wasBlocked;
 
     private Deck whiteDeck;
     private Deck blackDeck;
@@ -34,6 +36,7 @@ public class Board extends ConnectionListener implements Observable {
         currentMove = -1;
         reachedEnd = false;
         onTurn = false;
+        wasBlocked = false;
         whiteDeck = new Deck(Player.Color.WHITE, this);
         blackDeck = new Deck(Player.Color.BLACK, this);
 
@@ -45,6 +48,7 @@ public class Board extends ConnectionListener implements Observable {
             if (boardSetting.getY(i) + 2 > height) height = boardSetting.getY(i) + 2;
         }
         cells = new boolean[width][height];
+        valid = new boolean[width][height];
         for (int i = 0; i < 4; i++) {
             int x = boardSetting.getX(i);
             int y = boardSetting.getY(i);
@@ -52,6 +56,11 @@ public class Board extends ConnectionListener implements Observable {
             cells[x+1][y] = true;
             cells[x][y+1] = true;
             cells[x+1][y+1] = true;
+
+            valid[x][y] = true;
+            valid[x+1][y] = true;
+            valid[x][y+1] = true;
+            valid[x+1][y+1] = true;
         }
     }
 
@@ -77,88 +86,34 @@ public class Board extends ConnectionListener implements Observable {
      * @param response the response from the server containing the information about the move
      */
     public void received(String response) {
-        System.out.println("Received response: " + response);
         onTurn = true;
         if(response != null) {
-            Move move = decodeMove(connection.getPlayer().getColor().next(), response);
+            Move move = Move.decode(connection.getPlayer().getColor().next(), response);
             addMove(move);
-            if(wasBlockingMove()) {
-                System.out.println("This was a blocking move, sending X");
+            System.out.println("Recalculating valid cells");
+            calculateValidCells();
+            if(wasBlocked) {
+                System.out.println("Sending X");
                 connection.send(null);
                 onTurn = false;
-                System.out.println("It's my opponent's turn");
             }
         }
+        fireInvalidationEvent();
     }
 
     /**
-     * Tries to add a tile to the board.
-     *
-     * If successful, this will also notify the server
-     * with this move.
-     * @param deckTile the tile to be added to the board
+     * Adds a tile to the board and notifies the server about this
+     * @param tile the tile to be added to the board
      * @param x the x destination on the board
      * @param y the y destination on the board
-     * @return false if this is an invalid position
      */
-    public boolean selectBoardCell(Tile deckTile, int x, int y) {
-        if (!isValidCell(x, y) && !wasBlockingMove()) return false;
-        Move move = new Move(x, y, deckTile);
+    public void addTile(Tile tile, int x, int y) {
+        Move move = new Move(x, y, tile);
         addMove(move);
-        connection.send(encodeMove(move));
+        connection.send(move.encode());
         onTurn = false;
+        calculateValidCells();
         fireInvalidationEvent();
-        return true;
-    }
-
-    /**
-     * Adds a move to the board
-     * @param move the new move to be added
-     */
-    private void addMove(Move move) {
-        moves.add(move);
-        currentMove += 1;
-        fireInvalidationEvent();
-    }
-
-    /**
-     * Converts a player color an a server resonse to a move
-     * @param player the player color
-     * @param response the server response matching the protocol
-     * @return the decoded move
-     */
-    private Move decodeMove(Player.Color player, String response) {
-        String[] msg = response.split(" ");
-        if (msg[0].equals("T")) {
-            reachedEnd = true;
-        }
-        // converting rows/columns to x/y
-        int moveY = Integer.parseInt(msg[1]);
-        int moveX = Integer.parseInt(msg[2]);
-        Tile.Type type = Tile.Type.fromChar(msg[3]);
-        Tile newTile = new Tile(player, type);
-        return new Move(moveX, moveY, newTile);
-    }
-
-    private String encodeMove(Move move) {
-        String message = "F";
-        message += " " + move.getY();
-        message += " " + move.getX();
-        message += " " + move.getTile().getType().getChar();
-        return message;
-    }
-
-    private boolean wasBlockingMove() {
-        System.out.println("Checking to see if this was a blocking move...");
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                if (isValidCell(i, j)) {
-                    System.out.println("Nope, here's a valid cell: " + i + " " + j);
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     /**
@@ -167,14 +122,8 @@ public class Board extends ConnectionListener implements Observable {
      * @param y the y position of the cell
      * @return true if a new tile is allowed in this cell
      */
-    public boolean isValidCell(int x, int y) {
-        if (moves.size() > 0) {
-            Move lastMove = moves.get(moves.size() - 1);
-            if (!lastMove.getTile().getType().isAllowed(x - lastMove.getX(), y - lastMove.getY())) {
-                return false;
-            }
-        }
-        return hasCell(x, y) && getTile(x, y) == null;
+    public boolean isValid(int x, int y) {
+        return valid[x][y] || wasBlocked;
     }
 
     public boolean isOnTurn() {
@@ -187,7 +136,7 @@ public class Board extends ConnectionListener implements Observable {
      * If this move is not available in the stored buffer,
      * it will request the next move to the server.
      *
-     * If the current move was changes, this will fire an invalidation event.
+     * If the current move was changed, this will fire an invalidation event.
      * @param newMove the new move index t
      */
     public void setCurrentMove(int newMove) {
@@ -203,26 +152,6 @@ public class Board extends ConnectionListener implements Observable {
             }
         }
         fireInvalidationEvent();
-    }
-
-    /**
-     * Request the next move from the server.
-     *
-     * Only used in part 1
-     * @return false if the request failed
-     */
-    private void requestMove() {
-        Player.Color player = Player.Color.WHITE;
-        if (moves.size() > 0) {
-            player = moves.get(moves.size() - 1).getTile().getPlayer();
-            if (!wasBlockingMove()) {
-                player = player.next();
-            }
-        }
-        connection.send(null);
-        String response = connection.read();
-        Move newMove = decodeMove(player, response);
-        moves.add(newMove);
     }
 
     public int getCurrentMove() {
@@ -268,6 +197,57 @@ public class Board extends ConnectionListener implements Observable {
             }
         }
         return null;
+    }
+
+    /**
+     * Adds a move to the board
+     * @param move the new move to be added
+     */
+    private void addMove(Move move) {
+        moves.add(move);
+        currentMove += 1;
+        fireInvalidationEvent();
+    }
+
+    /**
+     * Request the next move from the server.
+     *
+     * Only used in part 1
+     */
+    private void requestMove() {
+        Player.Color player = Player.Color.WHITE;
+        if (moves.size() > 0) {
+            player = moves.get(moves.size() - 1).getTile().getPlayer();
+            if (!wasBlocked) {
+                player = player.next();
+            }
+        }
+        connection.send(null);
+        String response = connection.read();
+        Move newMove = Move.decode(player, response);
+        moves.add(newMove);
+    }
+
+    private void calculateValidCells() {
+        wasBlocked = true;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                valid[i][j] = isValidCell(i, j);
+                if (valid[i][j]) {
+                    wasBlocked = false;
+                }
+            }
+        }
+    }
+
+    private boolean isValidCell(int x, int y) {
+        if (moves.size() > 0) {
+            Move lastMove = moves.get(moves.size() - 1);
+            if (!lastMove.getTile().getType().isAllowed(x - lastMove.getX(), y - lastMove.getY())) {
+                return false;
+            }
+        }
+        return hasCell(x, y) && getTile(x, y) == null;
     }
 
     private List<InvalidationListener> listenerList = new ArrayList<>();
