@@ -3,7 +3,6 @@ package mijnlieff.client.board;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.geometry.Pos;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import mijnlieff.client.game.GameCompanion;
 
@@ -24,15 +23,13 @@ public class DeckPane extends VBox implements InvalidationListener {
     @Override
     public void invalidated(Observable observable) {
         getChildren().clear();
-        for (Tile t : model.getTiles()) {
-            ImageView image = new ImageView(t.getImage());
-            if (controller != null) {
-                image.setOnMouseClicked(controller::selectDeckTile);
-            }
-            image.getStyleClass().add("deck-image");
-            image.setFitWidth(75);
-            image.setFitHeight(75);
-            getChildren().add(image);
+        for (int i = 0; i < model.getTiles().size(); i += 1) {
+            Tile t = model.getTiles().get(i);
+            TilePane tilePane = new TilePane(t, e ->
+                    controller.selectDeckTile(model.getPlayerColor(), getChildrenUnmodifiable().indexOf((TilePane)e.getSource())));
+            tilePane.setSelected(model.getSelectedTile() == i);
+            tilePane.setClickeable(model.getBoard().isOnTurn() && model.getPlayerColor() == model.getBoard().getPlayer().getColor());
+            getChildren().add(tilePane);
         }
     }
 }

@@ -1,7 +1,7 @@
 package mijnlieff.client.game;
 
 import javafx.scene.Parent;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -11,15 +11,20 @@ import mijnlieff.client.board.*;
 public class GameCompanion {
 
     protected BorderPane view;
+    protected Label label;
 
     protected Board model;
 
-    private ImageView selectedDeckTile;
+    private Connection connection;
+
+    private Deck playerDeck;
 
     public GameCompanion(Connection connection, BoardSetting boardSetting) {
         model = new Board(connection, boardSetting);
+        this.connection = connection;
         initialize();
-        model.resetCurrentMove();
+        model.setCurrentMove(0);
+        playerDeck = model.getDeck(model.getPlayer().getColor());
     }
 
     protected void initialize() {
@@ -41,23 +46,27 @@ public class GameCompanion {
         return view;
     }
 
-    public void selectDeckTile(MouseEvent e) {
+    public void selectDeckTile(Player.Color playerColor, int row) {
         if (!model.isOnTurn()) return;
+        if (!playerDeck.getPlayerColor().equals(playerColor)) return;
 
-        selectedDeckTile = (ImageView)e.getSource();
+        playerDeck.setSelectedTile(row);
     }
 
     public void selectBoardTile(MouseEvent e) {
         if (!model.isOnTurn()) return;
-        if (selectedDeckTile == null) return;
+        if (playerDeck.getSelectedTile() == -1) return;
 
-        ImageView selectedBoardTile = (ImageView)e.getSource();
+        TilePane selectedBoardTile = (TilePane)e.getSource();
 
-        for (Tile t : model.getDeck(model.getPlayer().getColor()).getTiles()) {
-            if (t.getImage().equals(selectedDeckTile.getImage())) {
+        for (int i = 0; i < playerDeck.getTiles().size(); i += 1) {
+            Tile t = playerDeck.getTiles().get(i);
+            if (playerDeck.getSelectedTile() == i) {
                 int x = GridPane.getColumnIndex(selectedBoardTile);
                 int y = GridPane.getRowIndex(selectedBoardTile);
-                model.transferTile(t, x, y);
+                if (model.selectBoardCell(t, x, y)) {
+                    playerDeck.removeOneFromDeck(t);
+                }
                 return;
             }
         }
@@ -67,3 +76,15 @@ public class GameCompanion {
         return model;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+

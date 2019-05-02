@@ -104,7 +104,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
     public void establishedGame(Player opponent) {
         System.out.println("Established game with player " + opponent.getUsername());
         BoardEstablisher boardEstablisher = new BoardEstablisher(connection, opponent, this);
-        Scene scene = new Scene(boardEstablisher.asParent(), 512, 315);
+        Scene scene = new Scene(boardEstablisher.asParent(), 512, 320);
         double centerX = stage.getX() + stage.getWidth()/2;
         stage.setX(centerX - scene.getWidth()/2);
         stage.setScene(scene);

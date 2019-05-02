@@ -1,6 +1,5 @@
 package mijnlieff.client.board;
 
-import javafx.scene.image.Image;
 import mijnlieff.client.game.Player;
 
 import java.util.function.Predicate;
@@ -9,12 +8,10 @@ public class Tile {
 
     private Player.Color player;
     private Type type;
-    private Image image;
 
     public Tile(Player.Color player, Type type) {
         this.player = player;
         this.type = type;
-        this.image = new Image("mijnlieff/client/img/" + player.getName() + "-" + type.getName() + ".png");
     }
 
     public Player.Color getPlayer() {
@@ -23,10 +20,6 @@ public class Tile {
 
     public Type getType() {
         return type;
-    }
-
-    public Image getImage() {
-        return image;
     }
 
     public String toString() {

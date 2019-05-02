@@ -14,9 +14,6 @@ TextField.invalid {
     -fx-border-color: red;
 }
 
-.board-cell {
-}
-
 .board-empty {
     -fx-opacity: 0;
 }
@@ -26,7 +23,64 @@ TextField.invalid {
     -fx-hgap: 3;
     -fx-vgap: 3;
 }
-
 .deck-pane {
     -fx-spacing: 3;
+}
+
+.deck-pane .cell {
+    -fx-pref-width: 75;
+    -fx-pref-height: 75;
+}
+
+.cell {
+    -fx-background-size: cover;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-width: 3;
+}
+
+.deck-pane .cell.selected {
+    -fx-border-color: red;
+}
+
+.deck-pane .cell.clickeable:hover {
+    -fx-border-color: orange;
+}
+
+.cell.clickeable {
+    -fx-cursor: hand;
+}
+.cell.empty {
+    -fx-background-color: #dcdcdc;
+    -fx-border-width: 2;
+    -fx-border-color: #2e2e2e;
+}
+.cell.empty.valid {
+    -fx-background-color: #7db37e;
+    -fx-border-width: 2;
+    -fx-border-color: #043b00;
+}
+.cell.white.pusher {
+    -fx-background-image: url("img/white-pusher.png");
+}
+.cell.white.puller {
+    -fx-background-image: url("img/white-puller.png");
+}
+.cell.white.loper {
+    -fx-background-image: url("img/white-loper.png");
+}
+.cell.white.toren {
+    -fx-background-image: url("img/white-toren.png");
+}
+.cell.black.pusher {
+    -fx-background-image: url("img/black-pusher.png");
+}
+.cell.black.puller {
+    -fx-background-image: url("img/black-puller.png");
+}
+.cell.black.loper {
+    -fx-background-image: url("img/black-loper.png");
+}
+.cell.black.toren {
+    -fx-background-image: url("img/black-toren.png");
 }

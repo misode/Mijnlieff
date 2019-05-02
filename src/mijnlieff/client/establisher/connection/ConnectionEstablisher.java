@@ -32,12 +32,13 @@ public class ConnectionEstablisher extends ConnectionListener {
     }
 
     private void initialize() {
-        hostName = new TextField("localhost");
+        hostName = new TextField("cercan.ugent.be");
         hostName.setPromptText("server host");
+        hostName.setPrefWidth(10000);
 
-        portNumber = new TextField("4444");
+        portNumber = new TextField("80");
         portNumber.setPromptText("port number");
-        portNumber.setPrefWidth(120);
+        portNumber.setMinWidth(90);
 
         username = new TextField();
         username.setPromptText("username");
@@ -61,18 +62,9 @@ public class ConnectionEstablisher extends ConnectionListener {
 
     private void doJoin() {
         if (!checkValidInput()) return;
-        try {
-            int port = Integer.parseInt(portNumber.getText());
-            connection.start(hostName.getText(), port);
-            connecting.setVisible(true);
 
-            connection.identify(username.getText());
-        } catch (NumberFormatException e) {
-            portNumber.getStyleClass().add("invalid");
-        } catch (IOException e) {
-            hostName.getStyleClass().add("invalid");
-            portNumber.getStyleClass().add("invalid");
-        }
+        new Thread(this::connect).start();
+        connecting.setVisible(true);
     }
 
     private boolean checkValidInput() {
@@ -100,8 +92,21 @@ public class ConnectionEstablisher extends ConnectionListener {
         if (success) {
             listener.establishedConnection(connection);
         } else {
-            System.out.println("invalid username");
             username.getStyleClass().add("invalid");
         }
+    }
+
+    private void connect() {
+        try {
+            int port = Integer.parseInt(portNumber.getText());
+            connection.start(hostName.getText(), port);
+            connection.identify(username.getText());
+        } catch (NumberFormatException e) {
+            portNumber.getStyleClass().add("invalid");
+        } catch (IOException e) {
+            hostName.getStyleClass().add("invalid");
+            portNumber.getStyleClass().add("invalid");
+        }
+        connecting.setVisible(false);
     }
 }

@@ -42,21 +42,18 @@ public class BoardEstablisher extends ConnectionListener {
             selectedPreset = 0;
             prevButton.setDisable(true);
             updatePreview();
-        } else {
-            connection.waitForBoard();
         }
     }
 
     private void initialize() {
         Label title = new Label("Playing against");
         title.setFont(new Font(20));
-        title.setAlignment(Pos.CENTER);
 
         Label opponentName = new Label(opponent.getUsername());
         opponentName.setFont(new Font(25));
-        opponentName.setAlignment(Pos.CENTER);
 
         view = new VBox(title, opponentName);
+        view.setAlignment(Pos.TOP_CENTER);
 
         if (choosingBoard) {
             prevButton = new Button("<");
@@ -67,21 +64,23 @@ public class BoardEstablisher extends ConnectionListener {
 
             boardPreviewer = new GridPane();
             boardPreviewer.setAlignment(Pos.CENTER);
+            boardPreviewer.setPrefWidth(150);
+            boardPreviewer.setPrefHeight(150);
 
             nextButton = new Button(">");
             nextButton.setOnAction(e -> nextPreset());
 
-            HBox boardChooser = new HBox(
-                    prevButton,
-                    new VBox(boardLabel, boardPreviewer),
-                    nextButton);
+            HBox boardChooser = new HBox(prevButton, boardPreviewer, nextButton);
             boardChooser.setAlignment(Pos.CENTER);
 
             Button confirmButton = new Button("Confirm");
             confirmButton.setOnAction(e -> doConfirm());
             confirmButton.setAlignment(Pos.BOTTOM_RIGHT);
 
-            view.getChildren().addAll(boardChooser, confirmButton);
+            HBox confirmBox = new HBox(confirmButton);
+            confirmBox.setAlignment(Pos.BOTTOM_RIGHT);
+
+            view.getChildren().addAll(boardLabel, boardChooser, confirmBox);
         } else {
             Label placeHolder = new Label("Waiting for opponent to choose board");
 
@@ -118,11 +117,12 @@ public class BoardEstablisher extends ConnectionListener {
 
     private void doConfirm() {
         BoardSetting boardSetting = BoardSetting.getPreset(selectedPreset);
-        connection.sendBoard(boardSetting);
+        connection.send(boardSetting.toString());
         listener.establishedBoard(boardSetting);
     }
 
-    public void boardEstablished(BoardSetting boardSetting) {
+    public void received(String response) {
+        BoardSetting boardSetting = new BoardSetting(response);
         listener.establishedBoard(boardSetting);
     }
 

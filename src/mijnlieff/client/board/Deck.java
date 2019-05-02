@@ -11,20 +11,27 @@ import java.util.stream.Collectors;
 /**
  * Deck model, also listens to the board model
  */
-
 public class Deck implements Observable, InvalidationListener {
 
     private Board board;
     private Player.Color player;
     private ArrayList<Tile> tiles;
+    private int selectedTile;
 
     public Deck(Player.Color player, Board board) {
         this.player = player;
         this.board = board;
         board.addListener(this);
-
-        this.player = player;
         fillDeck();
+        selectedTile = -1;
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+    
+    public Player.Color getPlayerColor() {
+        return player;
     }
 
     private void fillDeck() {
@@ -39,6 +46,9 @@ public class Deck implements Observable, InvalidationListener {
     public void removeOneFromDeck(Tile t) {
         for (int i = tiles.size() - 1; i >= 0; i--) {
             if (t.equals(tiles.get(i))) {
+                if (i == selectedTile) {
+                    setSelectedTile(-1);
+                }
                 tiles.remove(i);
                 return;
             }
@@ -47,6 +57,16 @@ public class Deck implements Observable, InvalidationListener {
 
     public ArrayList<Tile> getTiles() {
         return tiles;
+    }
+
+    public void setSelectedTile(int row) {
+        if(selectedTile == row) return;
+        selectedTile = row;
+        fireInvalidationEvent();
+    }
+
+    public int getSelectedTile() {
+        return selectedTile;
     }
 
     private List<InvalidationListener> listenerList = new ArrayList<>();

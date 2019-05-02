@@ -4,8 +4,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
 import mijnlieff.client.game.GameCompanion;
@@ -13,10 +11,7 @@ import mijnlieff.client.game.GameCompanion;
 /**
  * View of the board
  */
-
 public class BoardPane extends GridPane implements InvalidationListener {
-
-    private static Image emptyCell = new Image("mijnlieff/client/img/empty.png");
 
     private Board model;
     private GameCompanion controller;
@@ -31,16 +26,16 @@ public class BoardPane extends GridPane implements InvalidationListener {
     }
 
     private void initialize() {
+        int size = 500 / Math.max(model.getWidth(), model.getHeight());
+        System.out.println("Size: " + size);
         for (int i = 0; i < model.getWidth(); i++) {
             for (int j = 0; j < model.getHeight(); j++) {
                 if (model.hasCell(i, j)) {
-                    ImageView image = new ImageView(emptyCell);
-                    image.getStyleClass().add("board-cell");
-                    image.setFitHeight(100);
-                    image.setFitWidth(100);
-                    add(image, i, j);
+                    TilePane tilePane = new TilePane(null, controller::selectBoardTile);
+                    tilePane.setPrefSize(size, size);
+                    add(tilePane, i, j);
                 } else {
-                    Rectangle rectangle = new Rectangle(100, 100);
+                    Rectangle rectangle = new Rectangle(size, size);
                     rectangle.getStyleClass().add("board-empty");
                     add(rectangle, i, j);
                 }
@@ -58,15 +53,10 @@ public class BoardPane extends GridPane implements InvalidationListener {
             int y = GridPane.getRowIndex(n);
             if (model.hasCell(x, y)) {
                 Tile tile = model.getTile(x, y);
-                ImageView cell = (ImageView) n;
-                if (tile == null) {
-                    cell.setImage(emptyCell);
-                    if (controller != null) {
-                        cell.setOnMouseClicked(controller::selectBoardTile);
-                    }
-                } else {
-                    cell.setImage(tile.getImage());
-                }
+                TilePane cell = (TilePane) n;
+                cell.setTile(tile);
+                cell.setValid(model.isValidCell(x, y));
+                cell.setClickeable(model.isValidCell(x, y) && model.isOnTurn());
             }
         }
     }
