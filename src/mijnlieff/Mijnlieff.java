@@ -8,6 +8,7 @@ import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
 import mijnlieff.client.*;
 import mijnlieff.client.board.Board;
+import mijnlieff.client.bot.Bot;
 import mijnlieff.client.establisher.board.BoardEstablishedListener;
 import mijnlieff.client.establisher.board.BoardEstablisher;
 import mijnlieff.client.board.BoardSetting;
@@ -24,7 +25,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 
 public class Mijnlieff extends Application implements ConnectionEstablishedListener,
         GameEstablishedListener, BoardEstablishedListener {
@@ -172,12 +172,12 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
 
     /**
      * Called by JavaFX when stopping the application, closes the connection
-     * @throws IOException if stopping this connection fails
      */
     @Override
-    public void stop() throws IOException {
+    public void stop() {
         if (connection != null) {
-            connection.stop();
+            System.err.println("Close 5");
+            connection.close();
         }
     }
 

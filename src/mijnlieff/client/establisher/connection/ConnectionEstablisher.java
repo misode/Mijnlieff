@@ -32,11 +32,11 @@ public class ConnectionEstablisher extends ConnectionListener {
     }
 
     private void initialize() {
-        hostName = new TextField("cercan.ugent.be");
+        hostName = new TextField("localhost");
         hostName.setPromptText("server host");
         hostName.setPrefWidth(10000);
 
-        portNumber = new TextField("80");
+        portNumber = new TextField("4444");
         portNumber.setPromptText("port number");
         portNumber.setMinWidth(90);
 

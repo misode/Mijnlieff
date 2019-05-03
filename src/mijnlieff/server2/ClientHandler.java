@@ -54,7 +54,6 @@ public class ClientHandler implements Runnable {
         Command command = null;
         try {
             while (!stopped && (command = queue.take()) != null) {
-                System.err.println("> " + command.line);
                 command.client.setState(realHandle(command.client, command.line));
             }
         } catch (InterruptedException e) {}

@@ -21,8 +21,8 @@ public class Board extends ConnectionListener implements Observable {
     private boolean[][] valid;
     private int currentMove;
     private boolean reachedEnd;
-    private boolean onTurn;
-    private boolean wasBlocked;
+    protected boolean onTurn;
+    protected boolean wasBlocked;
 
     private Deck whiteDeck;
     private Deck blackDeck;
@@ -91,8 +91,8 @@ public class Board extends ConnectionListener implements Observable {
             Move move = Move.decode(connection.getPlayer().getColor().next(), response);
             if (!isValid(move.getX(), move.getY())) {
                 System.err.println("Your opponent was cheating!");
-                //Platform.exit();
-                //return;
+                connection.close();
+                return;
             }
             addMove(move);
             calculateValidCells();
@@ -133,16 +133,8 @@ public class Board extends ConnectionListener implements Observable {
         return valid[x][y] || wasBlocked;
     }
 
-    public void setOnTurn(boolean turn) {
-        this.onTurn = turn;
-    }
-
     public boolean isOnTurn() {
         return onTurn;
-    }
-
-    public boolean wasBlocked() {
-        return wasBlocked;
     }
 
     /**
@@ -183,7 +175,7 @@ public class Board extends ConnectionListener implements Observable {
      * @see Move
      */
     public List<Move> getMoves() {
-        if (currentMove == 0) return new ArrayList<>();
+        if (currentMove <= 0) return new ArrayList<>();
         return moves.subList(0, currentMove);
     }
 
@@ -219,7 +211,7 @@ public class Board extends ConnectionListener implements Observable {
      * Adds a move to the board
      * @param move the new move to be added
      */
-    public void addMove(Move move) {
+    protected void addMove(Move move) {
         moves.add(move);
         currentMove += 1;
         fireInvalidationEvent();
@@ -247,7 +239,7 @@ public class Board extends ConnectionListener implements Observable {
         moves.add(newMove);
     }
 
-    public void calculateValidCells() {
+    protected void calculateValidCells() {
         wasBlocked = true;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
@@ -271,7 +263,7 @@ public class Board extends ConnectionListener implements Observable {
 
     private List<InvalidationListener> listenerList = new ArrayList<>();
 
-    private void fireInvalidationEvent () {
+    protected void fireInvalidationEvent () {
         for (InvalidationListener listener : listenerList) {
             listener.invalidated(this);
         }

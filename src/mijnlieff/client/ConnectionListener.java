@@ -20,4 +20,6 @@ public abstract class ConnectionListener {
     public void gameEstablished(Player opponent) {}
 
     public void received(String response) {}
+
+    public void closed() {}
 }

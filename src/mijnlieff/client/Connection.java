@@ -4,7 +4,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.util.Duration;
-import mijnlieff.client.board.BoardSetting;
 import mijnlieff.client.game.Player;
 
 import java.io.*;
@@ -161,10 +160,6 @@ public class Connection{
         return null;
     }
 
-    public void quit() {
-        out.println("Q");
-    }
-
     private boolean checkOpponent(String response) {
         if(response.length() >= 4 && response.substring(3, 4).equals(" ")) {
             initializeGame(response);
@@ -183,15 +178,15 @@ public class Connection{
             while ((response = in.readLine()) != null) {
                 if (response.equals("Q")) {
                     System.err.println("Server or opponent decided to close the connection...");
-                    Platform.exit();
+                    close();
+                    return;
                 } else {
                     String finalResponse = (response.length() < 3) ? null : response.substring(2);
                     Platform.runLater(() -> listener.received(finalResponse));
                 }
             }
         } catch (IOException e) {
-            System.err.println("Closed connection");
-            Platform.exit();
+            close();
         }
     }
 
@@ -210,11 +205,15 @@ public class Connection{
         new Thread(this::listen).start();
     }
 
-    public void stop() throws IOException {
+    public void close() {
+        System.err.println("Closed connection");
         try {
             out.println("Q");
-        } finally {
             socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            listener.closed();
         }
     }
 }
