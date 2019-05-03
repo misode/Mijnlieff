@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 
 public class Mijnlieff extends Application implements ConnectionEstablishedListener,
         GameEstablishedListener, BoardEstablishedListener {
@@ -39,6 +40,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         GAME,
         VIEWER,
         VIEWER_TEST,
+        BOT,
         INVALID
     }
 
@@ -49,6 +51,8 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         mode = Mode.INVALID;
         if (argList.size() == 0) {
             mode = Mode.GAME;
+        } else if (argList.size() == 1 && argList.get(0).equals("bot")) {
+            mode = Mode.BOT;
         } else if (argList.size() == 2 || argList.size() == 3) {
             mode = Mode.VIEWER;
             hostName = argList.get(0);
@@ -66,10 +70,11 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         stage.setTitle("Mijnlieff");
 
         if (mode == Mode.GAME) initializeGame();
+        if (mode == Mode.BOT) initializeBot();
         if (mode == Mode.VIEWER || mode == Mode.VIEWER_TEST) initializeViewer();
         if (mode == Mode.INVALID) Platform.exit();
 
-        stage.show();
+        if (mode != Mode.BOT) stage.show();
     }
 
     /**
@@ -123,6 +128,10 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         double centerX = stage.getX() + stage.getWidth()/2;
         stage.setX(centerX - scene.getWidth()/2);
         stage.setScene(scene);
+    }
+
+    private void initializeBot() {
+        Bot bot = new Bot("localhost", 4444);
     }
 
     /**

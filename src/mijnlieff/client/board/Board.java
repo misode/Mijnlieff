@@ -1,6 +1,5 @@
 package mijnlieff.client.board;
 
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import mijnlieff.client.Connection;
@@ -88,16 +87,16 @@ public class Board extends ConnectionListener implements Observable {
      */
     public void received(String response) {
         onTurn = true;
-        if(response != null) {
+        if (response != null) {
             Move move = Move.decode(connection.getPlayer().getColor().next(), response);
             if (!isValid(move.getX(), move.getY())) {
                 System.err.println("Your opponent was cheating!");
-                Platform.exit();
-                return;
+                //Platform.exit();
+                //return;
             }
             addMove(move);
             calculateValidCells();
-            if(wasBlocked) {
+            if (wasBlocked) {
                 connection.send(null);
                 onTurn = false;
             }
@@ -127,11 +126,23 @@ public class Board extends ConnectionListener implements Observable {
      * @return true if a new tile is allowed in this cell
      */
     public boolean isValid(int x, int y) {
+        //System.err.println("Checking is tile is valid " + x + " " + y + ": " + currentMove + " " + getTile(x, y));
+        if (currentMove > 0 && getTile(x, y) != null) {
+            return false;
+        }
         return valid[x][y] || wasBlocked;
+    }
+
+    public void setOnTurn(boolean turn) {
+        this.onTurn = turn;
     }
 
     public boolean isOnTurn() {
         return onTurn;
+    }
+
+    public boolean wasBlocked() {
+        return wasBlocked;
     }
 
     /**
@@ -172,6 +183,7 @@ public class Board extends ConnectionListener implements Observable {
      * @see Move
      */
     public List<Move> getMoves() {
+        if (currentMove == 0) return new ArrayList<>();
         return moves.subList(0, currentMove);
     }
 
@@ -207,7 +219,7 @@ public class Board extends ConnectionListener implements Observable {
      * Adds a move to the board
      * @param move the new move to be added
      */
-    private void addMove(Move move) {
+    public void addMove(Move move) {
         moves.add(move);
         currentMove += 1;
         fireInvalidationEvent();
@@ -235,7 +247,7 @@ public class Board extends ConnectionListener implements Observable {
         moves.add(newMove);
     }
 
-    private void calculateValidCells() {
+    public void calculateValidCells() {
         wasBlocked = true;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {

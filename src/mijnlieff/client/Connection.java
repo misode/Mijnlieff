@@ -161,6 +161,10 @@ public class Connection{
         return null;
     }
 
+    public void quit() {
+        out.println("Q");
+    }
+
     private boolean checkOpponent(String response) {
         if(response.length() >= 4 && response.substring(3, 4).equals(" ")) {
             initializeGame(response);
@@ -173,6 +177,7 @@ public class Connection{
      * Listens to the server for responses during the game.
      */
     private void listen() {
+        refresh();
         try {
             String response;
             while ((response = in.readLine()) != null) {
