@@ -144,7 +144,7 @@ public class Mijnlieff extends Application implements ConnectionEstablishedListe
         stage.setScene(scene);
 
         if (screenshot != null) {
-            Board board = controller.getModel();
+            Board board = controller.getBoard();
             while (board.hasNextMove()) {
                 board.setCurrentMove(board.getCurrentMove() + 1);
             }

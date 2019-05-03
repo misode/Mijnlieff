@@ -1,5 +1,6 @@
 package mijnlieff.client.board;
 
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import mijnlieff.client.Connection;
@@ -89,11 +90,14 @@ public class Board extends ConnectionListener implements Observable {
         onTurn = true;
         if(response != null) {
             Move move = Move.decode(connection.getPlayer().getColor().next(), response);
+            if (!isValid(move.getX(), move.getY())) {
+                System.err.println("Your opponent was cheating!");
+                Platform.exit();
+                return;
+            }
             addMove(move);
-            System.out.println("Recalculating valid cells");
             calculateValidCells();
             if(wasBlocked) {
-                System.out.println("Sending X");
                 connection.send(null);
                 onTurn = false;
             }
@@ -223,8 +227,11 @@ public class Board extends ConnectionListener implements Observable {
             }
         }
         connection.send(null);
-        String response = connection.read();
+        String response = connection.read().substring(2);
         Move newMove = Move.decode(player, response);
+        if (response.substring(0, 1).equals("T")) {
+            reachedEnd = true;
+        }
         moves.add(newMove);
     }
 

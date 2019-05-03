@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Deck model, also listens to the board model
+ * Deck board, also listens to the board board
  */
 public class Deck implements Observable, InvalidationListener {
 

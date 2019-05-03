@@ -80,11 +80,15 @@ public class ConnectionEstablisher extends ConnectionListener {
             portNumber.getStyleClass().add("invalid");
             valid = false;
         }
-        if (username.getText().length() < 3) {
+        if (!validUsername(username.getText())) {
             username.getStyleClass().add("invalid");
             valid = false;
         }
         return valid;
+    }
+
+    private boolean validUsername(String username) {
+        return username.matches("[A-Za-z0-9_]+");
     }
 
     @Override

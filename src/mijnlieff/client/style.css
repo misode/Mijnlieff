@@ -14,6 +14,10 @@ TextField.invalid {
     -fx-border-color: red;
 }
 
+AnchorPane.header Label {
+    -fx-font-size: 40;
+}
+
 BoardPane {
     -fx-pref-width: 200;
     -fx-hgap: 3;

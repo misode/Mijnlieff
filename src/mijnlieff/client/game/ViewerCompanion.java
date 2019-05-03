@@ -23,15 +23,16 @@ public class ViewerCompanion extends GameCompanion {
         nextMoveButton = new Button(">");
         lastMoveButton = new Button(">|");
 
-        model.addListener(o -> firstMoveButton.setDisable(model.getCurrentMove() <= 0));
-        model.addListener(o -> prevMoveButton.setDisable(model.getCurrentMove() <= 0));
-        model.addListener(o -> nextMoveButton.setDisable(!model.hasNextMove()));
-        model.addListener(o -> lastMoveButton.setDisable(!model.hasNextMove()));
+        board.addListener(o -> firstMoveButton.setDisable(board.getCurrentMove() <= 0));
+        board.addListener(o -> prevMoveButton.setDisable(board.getCurrentMove() <= 0));
+        board.addListener(o -> nextMoveButton.setDisable(!board.hasNextMove()));
+        board.addListener(o -> lastMoveButton.setDisable(!board.hasNextMove()));
 
-        firstMoveButton.setOnAction(e -> model.setCurrentMove(0));
-        prevMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() - 1));
-        nextMoveButton.setOnAction(e -> model.setCurrentMove(model.getCurrentMove() + 1));
-        lastMoveButton.setOnAction(e -> {while (model.hasNextMove()) {model.setCurrentMove(model.getCurrentMove() + 1);}});
+        firstMoveButton.setOnAction(e -> board.setCurrentMove(0));
+        prevMoveButton.setOnAction(e -> board.setCurrentMove(board.getCurrentMove() - 1));
+        nextMoveButton.setOnAction(e -> board.setCurrentMove(board.getCurrentMove() + 1));
+        lastMoveButton.setOnAction(e -> {while (board.hasNextMove()) {
+            board.setCurrentMove(board.getCurrentMove() + 1);}});
 
         HBox buttons = new HBox(firstMoveButton, prevMoveButton, nextMoveButton, lastMoveButton);
         buttons.getStyleClass().add("view-control");

@@ -23,7 +23,7 @@ public class DeckPane extends VBox implements InvalidationListener {
     public void invalidated(Observable observable) {
         getChildren().clear();
         for (int i = 0; i < deck.getTiles().size(); i += 1) {
-            TilePane tilePane = new TilePane(75, 75);
+            TilePane tilePane = new TilePane(65, 65);
             tilePane.setTile(deck.getTiles().get(i));
             tilePane.setOnMouseClicked(e ->
                     controller.selectDeckTile(deck, getChildrenUnmodifiable().indexOf((TilePane)e.getSource())));

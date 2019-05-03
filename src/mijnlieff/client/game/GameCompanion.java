@@ -3,7 +3,9 @@ package mijnlieff.client.game;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import mijnlieff.client.Connection;
@@ -12,30 +14,42 @@ import mijnlieff.client.board.*;
 public class GameCompanion implements InvalidationListener {
 
     protected BorderPane view;
-    protected Board model;
 
+    private Label whiteScore;
+    private Label blackScore;
+
+    protected Board board;
     private Deck playerDeck;
 
     public GameCompanion(Connection connection, BoardSetting boardSetting) {
-        model = new Board(connection, boardSetting);
-        model.addListener(this);
+        board = new Board(connection, boardSetting);
+        board.addListener(this);
         initialize();
-        model.setCurrentMove(0);
-        playerDeck = model.getDeck(model.getPlayer().getColor());
+        board.setCurrentMove(0);
+        playerDeck = board.getDeck(board.getPlayer().getColor());
     }
 
     protected void initialize() {
-        BoardPane boardPane = new BoardPane(model, this);
-        DeckPane whiteDeck = new DeckPane(model.getDeck(Player.Color.WHITE), this);
-        DeckPane blackDeck = new DeckPane(model.getDeck(Player.Color.BLACK), this);
-        model.addListener(boardPane);
-        model.addListener(whiteDeck);
-        model.addListener(blackDeck);
+        BoardPane boardPane = new BoardPane(board, this);
+        DeckPane whiteDeck = new DeckPane(board.getDeck(Player.Color.WHITE), this);
+        DeckPane blackDeck = new DeckPane(board.getDeck(Player.Color.BLACK), this);
+        board.addListener(boardPane);
+        board.addListener(whiteDeck);
+        board.addListener(blackDeck);
+
+        whiteScore = new Label("0");
+        blackScore = new Label("0");
+
+        AnchorPane header = new AnchorPane(whiteScore, blackScore);
+        header.getStyleClass().add("header");
+        AnchorPane.setLeftAnchor(whiteScore, 20.0);
+        AnchorPane.setRightAnchor(blackScore, 20.0);
 
         view = new BorderPane();
         view.setLeft(whiteDeck);
         view.setRight(blackDeck);
         view.setCenter(boardPane);
+        view.setTop(header);
         view.getStylesheets().add("mijnlieff/client/style.css");
     }
 
@@ -44,14 +58,14 @@ public class GameCompanion implements InvalidationListener {
     }
 
     public void selectDeckTile(Deck deck, int row) {
-        if (!model.isOnTurn()) return;
+        if (!board.isOnTurn()) return;
         if (!playerDeck.getPlayerColor().equals(deck.getPlayerColor())) return;
 
         playerDeck.setSelectedTile(row);
     }
 
     public void selectBoardTile(MouseEvent e) {
-        if (!model.isOnTurn()) return;
+        if (!board.isOnTurn()) return;
         if (playerDeck.getSelectedTile() == -1) return;
 
         TilePane selectedBoardTile = (TilePane)e.getSource();
@@ -59,23 +73,50 @@ public class GameCompanion implements InvalidationListener {
 
         int x = GridPane.getColumnIndex(selectedBoardTile);
         int y = GridPane.getRowIndex(selectedBoardTile);
-        if (model.isValid(x, y)) {
-            model.addTile(selectedDeckTile, x, y);
+        if (board.isValid(x, y)) {
+            board.addTile(selectedDeckTile, x, y);
             playerDeck.removeOneFromDeck(selectedDeckTile);
         }
     }
 
-    public Board getModel() {
-        return model;
+    public Board getBoard() {
+        return board;
     }
 
     public void invalidated(Observable o) {
-        int blackDeck = model.getDeck(Player.Color.BLACK).getTiles().size();
-        int whiteDeck = model.getDeck(Player.Color.WHITE).getTiles().size();
+        whiteScore.setText(String.valueOf(calculateScore(Player.Color.WHITE)));
+        blackScore.setText(String.valueOf(calculateScore(Player.Color.BLACK)));
+    }
 
-        if (whiteDeck > 0 && blackDeck > 0) return;
+    private int calculateScore(Player.Color playerColor) {
+        int score = 0;
+        int n = Math.max(board.getWidth(), board.getHeight());
 
+        int[] horizontalCount = new int[n];
+        int[] verticalCount = new int[n];
+        int[] diagonal1Count = new int[2*n];
+        int[] diagonal2Count = new int[2*n];
+        for (int i = 0; i < n; i += 1) {
+            for (int j = 0; j < n; j += 1) {
+                Tile tile = board.getTile(i, j);
+                if (tile != null && tile.getPlayer() == playerColor) {
+                    horizontalCount[i] += 1;
+                    verticalCount[j] += 1;
+                    diagonal1Count[i + j] += 1;
+                    diagonal2Count[i - j + n] += 1;
+                }
+            }
+        }
+        for (int i = 0; i < n; i += 1) {
+            if (horizontalCount[i] > 2) score += horizontalCount[i] - 2;
+            if (verticalCount[i] > 2) score += verticalCount[i] - 2;
+        }
+        for (int i = 0; i < 2*n; i += 1) {
+            if (diagonal1Count[i] > 2) score += diagonal1Count[i] - 2;
+            if (diagonal2Count[i] > 2) score += diagonal2Count[i] - 2;
+        }
 
+        return score;
     }
 }
 
